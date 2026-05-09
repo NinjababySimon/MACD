@@ -9,46 +9,72 @@
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300..900;1,9..144,300..900&family=JetBrains+Mono:wght@400;500;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
   :root{
-    --cream:#FFF6EC;
-    --cream-2:#FFEFE0;
-    --peach:#FFD9B7;
-    --peach-deep:#FFB57A;
-    --coral:#FF7A6B;
-    --coral-soft:#FFB3A7;
-    --mint:#9FE0C2;
-    --mint-deep:#3FB389;
-    --lavender:#C7B8FF;
-    --ink:#2A1E16;
-    --ink-soft:#5C4A3D;
-    --ink-faded:#998677;
-    --line:#EBD9C2;
-    --card:#FFFCF6;
-    --shadow: 0 1px 0 rgba(42,30,22,.04), 0 8px 24px -12px rgba(42,30,22,.18);
-    --shadow-lg: 0 1px 0 rgba(42,30,22,.04), 0 24px 48px -20px rgba(42,30,22,.25);
+    --bg-0:#13101C;
+    --bg-1:#1B1626;
+    --bg-2:#241C32;
+    --bg-3:#2E2440;
+    --card:#1E1929;
+    --card-hi:#27203A;
+    --line:#352B4D;
+    --line-soft:#28213B;
+
+    --ink:#F5E9F0;        /* cream-pink primary */
+    --ink-soft:#B7A6C4;
+    --ink-faded:#7B6E8C;
+
+    --pink:#FF8FB3;        /* hot pink coral */
+    --pink-soft:#FFB6C8;
+    --rose:#E84B7C;
+    --lavender:#C4A8FF;
+    --lavender-soft:#A98BE6;
+    --mint:#7FE3C0;
+    --mint-soft:#5BC9A4;
+    --gold:#FFD89B;
+
+    --shadow-glow: 0 0 0 1px rgba(196,168,255,.06), 0 8px 28px -8px rgba(196,168,255,.18);
+    --shadow-glow-lg: 0 0 0 1px rgba(196,168,255,.1), 0 24px 60px -20px rgba(255,143,179,.28);
   }
   *{box-sizing:border-box}
   html,body{margin:0;padding:0}
   body{
     font-family:'Inter',system-ui,sans-serif;
     background:
-      radial-gradient(1200px 600px at 90% -10%, #FFE4CC 0%, transparent 60%),
-      radial-gradient(900px 500px at -10% 110%, #DFF3E8 0%, transparent 55%),
-      radial-gradient(700px 400px at 110% 100%, #F3E7FF 0%, transparent 50%),
-      var(--cream);
+      radial-gradient(900px 500px at 88% -8%, rgba(255,143,179,.12) 0%, transparent 55%),
+      radial-gradient(800px 480px at -10% 30%, rgba(196,168,255,.14) 0%, transparent 55%),
+      radial-gradient(700px 400px at 110% 100%, rgba(127,227,192,.08) 0%, transparent 55%),
+      var(--bg-0);
     color:var(--ink);
     min-height:100vh;
     overflow-x:hidden;
     padding-bottom:80px;
   }
-  /* subtle grain */
+  /* twinkling stars overlay */
   body::before{
     content:"";
     position:fixed;inset:0;
-    background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='160' height='160'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 0.16 0 0 0 0 0.12 0 0 0 0 0.08 0 0 0 0.08 0'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>");
+    background-image:
+      radial-gradient(1.2px 1.2px at 12% 18%, rgba(255,255,255,.7), transparent),
+      radial-gradient(1px 1px at 67% 8%, rgba(255,255,255,.5), transparent),
+      radial-gradient(1.4px 1.4px at 38% 72%, rgba(255,182,200,.6), transparent),
+      radial-gradient(1px 1px at 88% 42%, rgba(196,168,255,.7), transparent),
+      radial-gradient(1.2px 1.2px at 22% 88%, rgba(255,255,255,.4), transparent),
+      radial-gradient(1px 1px at 78% 78%, rgba(127,227,192,.5), transparent),
+      radial-gradient(1.4px 1.4px at 52% 32%, rgba(255,255,255,.5), transparent),
+      radial-gradient(1px 1px at 8% 58%, rgba(255,255,255,.45), transparent);
     pointer-events:none;
     z-index:0;
-    mix-blend-mode:multiply;
-    opacity:.5;
+    animation:twinkle 6s ease-in-out infinite;
+  }
+  @keyframes twinkle{50%{opacity:.55}}
+  /* subtle grain */
+  body::after{
+    content:"";
+    position:fixed;inset:0;
+    background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='160' height='160'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 1 0 0 0 0 1 0 0 0 0 1 0 0 0 0.04 0'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>");
+    pointer-events:none;
+    z-index:0;
+    mix-blend-mode:screen;
+    opacity:.6;
   }
 
   .wrap{position:relative;z-index:1;max-width:1280px;margin:0 auto;padding:32px 28px;}
@@ -63,17 +89,18 @@
     font-family:'JetBrains Mono',monospace;
     font-size:11px;letter-spacing:.18em;text-transform:uppercase;
     color:var(--ink-soft);
-    background:var(--card);
+    background:rgba(46,36,64,.6);
     border:1px solid var(--line);
     padding:6px 12px;border-radius:999px;
     width:fit-content;
-    box-shadow:var(--shadow);
+    backdrop-filter:blur(8px);
+    box-shadow:var(--shadow-glow);
   }
-  .eyebrow .dot{width:6px;height:6px;border-radius:50%;background:var(--mint-deep);box-shadow:0 0 0 3px rgba(63,179,137,.18);animation:pulse 2s ease-in-out infinite;}
-  @keyframes pulse{50%{box-shadow:0 0 0 6px rgba(63,179,137,0);}}
+  .eyebrow .dot{width:6px;height:6px;border-radius:50%;background:var(--mint);box-shadow:0 0 10px var(--mint), 0 0 0 3px rgba(127,227,192,.18);animation:pulse 2s ease-in-out infinite;}
+  @keyframes pulse{50%{box-shadow:0 0 14px var(--mint), 0 0 0 6px rgba(127,227,192,0);}}
   h1{
     font-family:'Fraunces',serif;
-    font-weight:400;
+    font-weight:300;
     font-size:clamp(44px,7vw,84px);
     line-height:.95;
     letter-spacing:-.03em;
@@ -83,14 +110,20 @@
   h1 em{
     font-style:italic;
     font-weight:300;
-    color:var(--coral);
+    background:linear-gradient(135deg,var(--pink) 0%, var(--lavender) 100%);
+    -webkit-background-clip:text;
+    background-clip:text;
+    -webkit-text-fill-color:transparent;
     font-variation-settings:"SOFT" 100;
   }
   h1 .ornament{
     display:inline-block;
-    color:var(--peach-deep);
+    color:var(--pink);
     transform:translateY(-.05em);
+    text-shadow:0 0 24px rgba(255,143,179,.6);
+    animation:float 4s ease-in-out infinite;
   }
+  @keyframes float{50%{transform:translateY(-.15em) rotate(8deg)}}
   .lede{
     font-family:'Fraunces',serif;
     font-weight:300;
@@ -100,20 +133,22 @@
     line-height:1.5;
     margin:14px 0 0;
   }
+  .lede em{font-style:italic;color:var(--pink-soft);}
   .lede code{
     font-family:'JetBrains Mono',monospace;
-    background:var(--cream-2);
-    padding:1px 6px;border-radius:6px;font-size:13px;color:var(--ink);
+    background:var(--bg-2);
+    padding:1px 8px;border-radius:6px;font-size:13px;color:var(--lavender);
+    border:1px solid var(--line);
   }
 
   /* control card */
   .controls{
     margin-top:28px;
-    background:var(--card);
+    background:linear-gradient(180deg,var(--card) 0%, var(--bg-1) 100%);
     border:1px solid var(--line);
     border-radius:24px;
     padding:20px;
-    box-shadow:var(--shadow);
+    box-shadow:var(--shadow-glow);
     display:grid;
     grid-template-columns: 1fr 1fr auto;
     gap:14px;
@@ -129,7 +164,7 @@
     color:var(--ink-faded);
   }
   .seg{
-    display:flex;background:var(--cream);border:1px solid var(--line);
+    display:flex;background:var(--bg-0);border:1px solid var(--line);
     border-radius:12px;padding:3px;gap:2px;
   }
   .seg button{
@@ -142,27 +177,38 @@
   }
   .seg button:hover{color:var(--ink)}
   .seg button.on{
-    background:var(--ink);
-    color:var(--cream);
-    box-shadow:0 2px 8px -2px rgba(42,30,22,.4);
+    background:linear-gradient(135deg,var(--pink) 0%, var(--rose) 100%);
+    color:#fff;
+    box-shadow:0 4px 14px -4px rgba(232,75,124,.6), inset 0 1px 0 rgba(255,255,255,.2);
   }
   .scan-btn{
-    background:var(--coral);
-    color:#fff;
+    background:linear-gradient(135deg,var(--pink) 0%, var(--lavender) 100%);
+    color:#1B1626;
     border:none;
     border-radius:14px;
     padding:14px 22px;
     font-family:'Fraunces',serif;
-    font-size:18px;font-weight:500;font-style:italic;
+    font-size:18px;font-weight:600;font-style:italic;
     cursor:pointer;
-    box-shadow:0 4px 0 #D85A4D, 0 8px 20px -6px rgba(255,122,107,.6);
+    box-shadow:
+      0 0 0 1px rgba(255,255,255,.15) inset,
+      0 4px 0 rgba(0,0,0,.3),
+      0 8px 24px -4px rgba(255,143,179,.5),
+      0 12px 40px -8px rgba(196,168,255,.4);
     transition:all .15s ease;
     min-width:140px;
     letter-spacing:-.01em;
   }
-  .scan-btn:hover{transform:translateY(-1px);box-shadow:0 5px 0 #D85A4D, 0 10px 24px -6px rgba(255,122,107,.7);}
-  .scan-btn:active{transform:translateY(2px);box-shadow:0 2px 0 #D85A4D, 0 4px 12px -4px rgba(255,122,107,.5);}
-  .scan-btn:disabled{background:var(--ink-faded);box-shadow:0 4px 0 #7A6856;cursor:not-allowed;}
+  .scan-btn:hover{
+    transform:translateY(-1px);
+    box-shadow:
+      0 0 0 1px rgba(255,255,255,.2) inset,
+      0 5px 0 rgba(0,0,0,.3),
+      0 10px 30px -4px rgba(255,143,179,.65),
+      0 14px 50px -8px rgba(196,168,255,.55);
+  }
+  .scan-btn:active{transform:translateY(2px);box-shadow:0 0 0 1px rgba(255,255,255,.15) inset, 0 2px 0 rgba(0,0,0,.3), 0 4px 12px -4px rgba(255,143,179,.4);}
+  .scan-btn:disabled{background:var(--bg-3);color:var(--ink-faded);box-shadow:0 4px 0 rgba(0,0,0,.3);cursor:not-allowed;}
 
   /* progress strip */
   .status{
@@ -171,23 +217,29 @@
     font-family:'JetBrains Mono',monospace;
     font-size:12px;color:var(--ink-soft);
     min-height:24px;
+    flex-wrap:wrap;
   }
   .progress{
-    flex:1;height:6px;background:var(--cream-2);border-radius:99px;overflow:hidden;
+    flex:1;min-width:120px;height:6px;background:var(--bg-2);border-radius:99px;overflow:hidden;
     border:1px solid var(--line);
+    box-shadow:inset 0 1px 2px rgba(0,0,0,.4);
   }
   .progress-bar{
     height:100%;width:0%;
-    background:linear-gradient(90deg,var(--mint),var(--mint-deep));
+    background:linear-gradient(90deg,var(--pink),var(--lavender),var(--mint));
+    background-size:200% 100%;
     border-radius:99px;
     transition:width .3s ease;
+    box-shadow:0 0 12px rgba(255,143,179,.5);
+    animation:shift 3s linear infinite;
   }
+  @keyframes shift{0%{background-position:0% 50%}100%{background-position:200% 50%}}
   .stat-pill{
     background:var(--card);border:1px solid var(--line);
     padding:5px 10px;border-radius:99px;
     color:var(--ink);
   }
-  .stat-pill b{color:var(--coral);font-weight:700}
+  .stat-pill b{color:var(--pink);font-weight:700}
 
   /* results */
   .results-head{
@@ -195,20 +247,34 @@
     display:flex;align-items:baseline;justify-content:space-between;gap:16px;flex-wrap:wrap;
   }
   .results-head h2{
-    font-family:'Fraunces',serif;font-weight:400;font-style:italic;
+    font-family:'Fraunces',serif;font-weight:300;font-style:italic;
     font-size:32px;letter-spacing:-.02em;margin:0;
+    color:var(--ink);
   }
   .results-head h2 .count{
-    font-style:normal;font-weight:500;
-    background:var(--mint);color:var(--ink);
+    font-style:normal;font-weight:600;
+    background:linear-gradient(135deg,var(--mint) 0%, var(--lavender) 100%);
+    color:var(--bg-0);
     padding:2px 14px;border-radius:99px;font-size:22px;
     margin-left:8px;display:inline-block;transform:translateY(-3px);
+    box-shadow:0 4px 16px -4px rgba(127,227,192,.4);
   }
   .legend{
     font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--ink-faded);
     letter-spacing:.05em;
   }
-  .legend span{color:var(--coral);font-weight:700;}
+  .legend span{color:var(--pink);font-weight:700;}
+
+  .sort{
+    display:flex;gap:6px;align-items:center;
+    font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--ink-faded);
+  }
+  .sort select{
+    font-family:'JetBrains Mono',monospace;font-size:11px;
+    background:var(--card);border:1px solid var(--line);
+    border-radius:8px;padding:5px 8px;color:var(--ink);
+    cursor:pointer;
+  }
 
   .grid{
     display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));
@@ -216,23 +282,37 @@
   }
 
   .card{
-    background:var(--card);
+    background:linear-gradient(180deg,var(--card-hi) 0%, var(--card) 100%);
     border:1px solid var(--line);
     border-radius:20px;
     padding:18px;
-    box-shadow:var(--shadow);
-    transition:transform .2s ease, box-shadow .2s ease;
+    box-shadow:var(--shadow-glow);
+    transition:transform .25s ease, box-shadow .25s ease, border-color .25s ease;
     position:relative;
     overflow:hidden;
   }
-  .card:hover{transform:translateY(-2px);box-shadow:var(--shadow-lg);}
+  .card:hover{
+    transform:translateY(-3px);
+    box-shadow:var(--shadow-glow-lg);
+    border-color:rgba(196,168,255,.4);
+  }
   .card::before{
-    content:"";position:absolute;top:0;left:0;right:0;height:3px;
-    background:linear-gradient(90deg,var(--mint),var(--mint-deep));
+    content:"";position:absolute;top:0;left:0;right:0;height:2px;
+    background:linear-gradient(90deg,var(--pink),var(--lavender),var(--mint));
+    opacity:.9;
   }
-  .card.fresh::before{
-    background:linear-gradient(90deg,var(--coral-soft),var(--coral));
+  /* sparkle decoration */
+  .card::after{
+    content:"✦";
+    position:absolute;
+    top:14px;right:62px;
+    font-size:10px;
+    color:var(--lavender);
+    opacity:.5;
+    animation:twinkle2 3s ease-in-out infinite;
   }
+  @keyframes twinkle2{50%{opacity:.15;transform:scale(.8)}}
+
   .card-head{
     display:flex;align-items:center;justify-content:space-between;gap:12px;
     margin-bottom:14px;
@@ -242,22 +322,23 @@
     font-size:22px;letter-spacing:-.01em;
     color:var(--ink);
   }
-  .pair .quote{color:var(--ink-faded);font-size:14px;font-weight:400;}
+  .pair .quote{color:var(--ink-faded);font-size:14px;font-weight:300;font-style:italic;}
   .badge{
-    font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.1em;
+    font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.08em;
     text-transform:uppercase;font-weight:700;
-    padding:4px 8px;border-radius:8px;
-    background:var(--mint);color:var(--ink);
+    padding:4px 9px;border-radius:8px;
+    background:linear-gradient(135deg,var(--pink) 0%, var(--rose) 100%);
+    color:#fff;
     white-space:nowrap;
+    box-shadow:0 2px 10px -2px rgba(232,75,124,.5);
   }
-  .badge.fresh{background:var(--coral);color:#fff;}
   .price{
     font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--ink-soft);
     margin-bottom:12px;display:flex;justify-content:space-between;align-items:center;
   }
   .change{font-weight:700;}
-  .change.up{color:var(--mint-deep)}
-  .change.down{color:var(--coral)}
+  .change.up{color:var(--mint)}
+  .change.down{color:var(--pink)}
 
   .spark{
     width:100%;height:64px;display:block;
@@ -269,12 +350,11 @@
     font-family:'JetBrains Mono',monospace;font-size:11px;
   }
   .stat{
-    background:var(--cream);border:1px solid var(--line);
+    background:var(--bg-1);border:1px solid var(--line-soft);
     border-radius:10px;padding:8px 10px;
   }
   .stat-label{color:var(--ink-faded);text-transform:uppercase;letter-spacing:.1em;font-size:9px;}
   .stat-val{color:var(--ink);font-weight:700;font-size:13px;margin-top:2px;}
-  .stat-val.zero-near{color:var(--coral);}
 
   .empty{
     background:var(--card);border:1px dashed var(--line);
@@ -282,8 +362,10 @@
     color:var(--ink-soft);
   }
   .empty .big{
-    font-family:'Fraunces',serif;font-style:italic;font-size:28px;
+    font-family:'Fraunces',serif;font-style:italic;font-size:28px;font-weight:300;
     color:var(--ink);margin-bottom:8px;
+    background:linear-gradient(135deg,var(--pink),var(--lavender));
+    -webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;
   }
   .empty .small{font-family:'Inter',sans-serif;font-size:14px;}
 
@@ -294,7 +376,7 @@
   }
   .skeleton::after{
     content:"";position:absolute;inset:0;
-    background:linear-gradient(90deg,transparent,rgba(255,217,183,.3),transparent);
+    background:linear-gradient(90deg,transparent,rgba(196,168,255,.1),transparent);
     animation:shim 1.4s linear infinite;
   }
   @keyframes shim{0%{transform:translateX(-100%)}100%{transform:translateX(100%)}}
@@ -304,30 +386,7 @@
     font-family:'JetBrains Mono',monospace;font-size:11px;
     color:var(--ink-faded);letter-spacing:.08em;
   }
-  footer .heart{color:var(--coral);}
-
-  /* tooltip on info icon */
-  .info{
-    display:inline-flex;align-items:center;justify-content:center;
-    width:14px;height:14px;border-radius:50%;
-    background:var(--cream-2);color:var(--ink-soft);
-    font-family:'Fraunces',serif;font-style:italic;font-size:10px;
-    cursor:help;margin-left:6px;
-    border:1px solid var(--line);
-    vertical-align:middle;
-  }
-
-  /* sort control */
-  .sort{
-    display:flex;gap:6px;align-items:center;
-    font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--ink-faded);
-  }
-  .sort select{
-    font-family:'JetBrains Mono',monospace;font-size:11px;
-    background:var(--card);border:1px solid var(--line);
-    border-radius:8px;padding:4px 8px;color:var(--ink);
-    cursor:pointer;
-  }
+  footer .heart{color:var(--pink);text-shadow:0 0 8px rgba(255,143,179,.6);}
 </style>
 </head>
 <body>
@@ -335,10 +394,10 @@
 
   <header class="hero">
     <span class="eyebrow"><span class="dot"></span>Binance Spot · Live Scanner</span>
-    <h1>MACD <em>bloom</em> <span class="ornament">✿</span></h1>
+    <h1>MACD <em>bloom</em> <span class="ornament">☾</span></h1>
     <p class="lede">
       Hunting bullish golden crossovers blossoming through the zero line.
-      Scans the entire spot market with <code>MACD(10, 20, 7)</code> and surfaces only the pairs where momentum is just turning up <em>and</em> crossing zero — the sweet spot.
+      Scans the entire spot market with <code>MACD(10, 20, 7)</code> and surfaces only the pairs where MACD crosses <em>negative → positive</em> together with the signal cross — the moment momentum truly flips.
     </p>
   </header>
 
@@ -365,7 +424,7 @@
   </section>
 
   <div class="status">
-    <span id="status-text">Pick your settings, then tap scan ✿</span>
+    <span id="status-text">Pick your settings, then tap scan ☾</span>
     <div class="progress"><div class="progress-bar" id="bar"></div></div>
     <span class="stat-pill">scanned <b id="scanned-n">0</b></span>
     <span class="stat-pill">matches <b id="match-n">0</b></span>
@@ -374,15 +433,15 @@
   <div class="results-head">
     <h2>Bloomers <span class="count" id="result-count">0</span></h2>
     <div style="display:flex;gap:14px;align-items:center;flex-wrap:wrap;">
-      <span class="legend"><span>●</span> just crossed zero · ● recent crossover</span>
+      <span class="legend">strict mode · MACD crossed <span>negative → positive</span> & signal cross</span>
       <div class="sort">
         sort by
         <select id="sort-by">
-          <option value="zero">Closest to zero</option>
+          <option value="recent">Most recent zero cross</option>
           <option value="hist">Histogram strength</option>
           <option value="vol">24h volume</option>
           <option value="chg">24h change</option>
-          <option value="recent">Most recent cross</option>
+          <option value="zero">Closest to zero</option>
         </select>
       </div>
     </div>
@@ -403,7 +462,7 @@ const state = {
   window: 2,           // crossover must be within last N closed bars
   scanning: false,
   results: [],
-  sortBy: 'zero',
+  sortBy: 'recent',
 };
 
 // api.binance.com reliably sets Access-Control-Allow-Origin: * for these endpoints.
@@ -460,12 +519,13 @@ function computeMACD(closes){
   return { macd, signal, hist };
 }
 
-// Detect bullish golden crossover near zero
-// Returns { ok, crossIdx, distFromZero, hist, macd, signal } or null
+// Detect bullish golden crossover where MACD also crosses zero from NEGATIVE to POSITIVE.
+// Both events must happen within the user's lookback window. Strict: no "close to zero" fallback.
+// Returns { ok, crossIdx, zeroCrossIdx, ... } or null.
 function findGoldenZeroCross(macd, signal, hist, lookback){
-  // We use closed bars: ignore the very last (potentially in-progress) bar.
-  // Caller should have already excluded it; here we treat the array as closed bars.
   const n = macd.length;
+
+  // 1. Find most recent bullish signal-line crossover within the window
   let crossIdx = -1;
   for(let i=n-1; i>=Math.max(1, n-1-lookback); i--){
     const prevDiff = macd[i-1] - signal[i-1];
@@ -476,40 +536,40 @@ function findGoldenZeroCross(macd, signal, hist, lookback){
   }
   if (crossIdx < 0) return null;
 
-  // Zero-line proximity / cross condition:
-  // Either MACD just crossed zero (sign change recently) OR MACD value sits very close to zero
-  // measured against recent ATR-like normalization (use std of macd values)
+  // 2. Require MACD to have crossed zero from negative to positive
+  //    within a small window around the signal cross (±3 bars, but still inside data range).
+  //    Strictly: prev MACD < 0 AND current MACD > 0.
+  let zeroCrossIdx = -1;
+  const lo = Math.max(1, crossIdx - 3);
+  const hi = Math.min(n-1, crossIdx + 3);
+  for(let j=lo; j<=hi; j++){
+    if (isFinite(macd[j-1]) && isFinite(macd[j]) && macd[j-1] < 0 && macd[j] > 0){
+      zeroCrossIdx = j; break;
+    }
+  }
+  if (zeroCrossIdx < 0) return null;
+
+  // 3. Current MACD must still be positive (signal hasn't fizzled back below zero)
+  if (!(macd[n-1] > 0)) return null;
+
+  // Normalize MACD distance from zero against recent volatility (for sorting / display)
   const recent = macd.slice(Math.max(0, crossIdx-30), crossIdx+1).filter(isFinite);
-  if (recent.length<5) return null;
   const mean = recent.reduce((a,b)=>a+b,0)/recent.length;
   const variance = recent.reduce((a,b)=>a+(b-mean)*(b-mean),0)/recent.length;
   const std = Math.sqrt(variance) || 1e-9;
 
-  const macdAtCross = macd[crossIdx];
-  const macdPrev    = macd[Math.max(0,crossIdx-1)];
-
-  // condition A: MACD crossed zero from below at or near the crossover (within 3 bars)
-  let zeroCrossedRecently = false;
-  for(let j=Math.max(1, crossIdx-3); j<=Math.min(n-1, crossIdx+1); j++){
-    if (isFinite(macd[j-1]) && isFinite(macd[j]) && macd[j-1] <= 0 && macd[j] > 0){
-      zeroCrossedRecently = true; break;
-    }
-  }
-  // condition B: MACD value very close to zero relative to its recent volatility (within 0.6 std)
-  const closeToZero = Math.abs(macdAtCross) < 0.6 * std;
-
-  if (!zeroCrossedRecently && !closeToZero) return null;
-
   return {
     ok: true,
     crossIdx,
+    zeroCrossIdx,
     barsAgo: (n-1) - crossIdx,
-    macd: macdAtCross,
-    macdPrev,
+    zeroBarsAgo: (n-1) - zeroCrossIdx,
+    macd: macd[crossIdx],
+    macdNow: macd[n-1],
     signal: signal[crossIdx],
     hist: hist[crossIdx],
-    distFromZero: macdAtCross / std, // normalized
-    zeroCrossedRecently,
+    histNow: hist[n-1],
+    distFromZero: macd[n-1] / std,
   };
 }
 
@@ -640,7 +700,7 @@ async function startScan(){
     // remove any remaining skeletons
     document.querySelectorAll('#grid .skeleton').forEach(s=>s.remove());
 
-    setStatus(`done · scanned ${scanned} · ${matched} bloomers found ✿`);
+    setStatus(`done · scanned ${scanned} · ${matched} bloomers found ☾`);
     render(); // re-sort with chosen criterion
   } catch(e){
     setStatus(`error: ${e.message}`);
@@ -682,8 +742,8 @@ function spark(closes){
     return `${x.toFixed(1)},${y.toFixed(1)}`;
   }).join(' ');
   const lastUp = data[n-1] >= data[0];
-  const stroke = lastUp ? 'var(--mint-deep)' : 'var(--coral)';
-  const fill = lastUp ? 'rgba(63,179,137,.15)' : 'rgba(255,122,107,.15)';
+  const stroke = lastUp ? '#7FE3C0' : '#FF8FB3';
+  const fill   = lastUp ? 'rgba(127,227,192,.18)' : 'rgba(255,143,179,.18)';
   return `
     <svg class="spark" viewBox="0 0 ${w} ${h}" preserveAspectRatio="none">
       <polyline points="${pad},${h-pad} ${pts} ${w-pad},${h-pad}" fill="${fill}" stroke="none"/>
@@ -693,14 +753,13 @@ function spark(closes){
 
 function cardHTML(r){
   const det = r.detection;
-  const fresh = det.zeroCrossedRecently;
   const chgClass = r.pctChange >= 0 ? 'up' : 'down';
   const chgSign = r.pctChange >= 0 ? '+' : '';
   return `
-    <div class="card ${fresh?'fresh':''}">
+    <div class="card">
       <div class="card-head">
         <div class="pair">${r.base}<span class="quote">/${r.quote}</span></div>
-        <div class="badge ${fresh?'fresh':''}">${fresh?'zero cross':'cross only'}</div>
+        <div class="badge">↑ zero cross</div>
       </div>
       <div class="price">
         <span>$${fmtPrice(r.lastClose)}</span>
@@ -708,9 +767,9 @@ function cardHTML(r){
       </div>
       ${spark(r.closes)}
       <div class="stats">
-        <div class="stat"><div class="stat-label">Bars since cross</div><div class="stat-val">${det.barsAgo}</div></div>
-        <div class="stat"><div class="stat-label">Histogram</div><div class="stat-val">${det.hist.toExponential(2)}</div></div>
-        <div class="stat"><div class="stat-label">MACD</div><div class="stat-val ${Math.abs(det.distFromZero)<0.4?'zero-near':''}">${det.macd.toExponential(2)}</div></div>
+        <div class="stat"><div class="stat-label">Signal cross</div><div class="stat-val">${det.barsAgo}b ago</div></div>
+        <div class="stat"><div class="stat-label">Zero cross</div><div class="stat-val">${det.zeroBarsAgo}b ago</div></div>
+        <div class="stat"><div class="stat-label">MACD now</div><div class="stat-val">${det.macdNow.toExponential(2)}</div></div>
         <div class="stat"><div class="stat-label">24h vol</div><div class="stat-val">${fmtVol(r.quoteVolume)}</div></div>
       </div>
     </div>`;
@@ -729,13 +788,13 @@ function render(){
     case 'hist': list.sort((a,b)=>b.detection.hist - a.detection.hist); break;
     case 'vol':  list.sort((a,b)=>b.quoteVolume - a.quoteVolume); break;
     case 'chg':  list.sort((a,b)=>b.pctChange - a.pctChange); break;
-    case 'recent': list.sort((a,b)=>a.detection.barsAgo - b.detection.barsAgo); break;
+    case 'recent': list.sort((a,b)=>a.detection.zeroBarsAgo - b.detection.zeroBarsAgo); break;
   }
   const grid = document.getElementById('grid');
   grid.innerHTML = '';
   if (list.length === 0){
     grid.innerHTML = `<div class="empty" style="grid-column:1/-1">
-      <div class="big">No bloomers right now ✿</div>
+      <div class="big">No bloomers right now ☾</div>
       <div class="small">Try a different timeframe, widen the crossover window, or scan again in a bit.</div>
     </div>`;
     document.getElementById('result-count').textContent = '0';
