@@ -1,0 +1,752 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>MACD Bloom · Binance Spot Scanner</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300..900;1,9..144,300..900&family=JetBrains+Mono:wght@400;500;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --cream:#FFF6EC;
+    --cream-2:#FFEFE0;
+    --peach:#FFD9B7;
+    --peach-deep:#FFB57A;
+    --coral:#FF7A6B;
+    --coral-soft:#FFB3A7;
+    --mint:#9FE0C2;
+    --mint-deep:#3FB389;
+    --lavender:#C7B8FF;
+    --ink:#2A1E16;
+    --ink-soft:#5C4A3D;
+    --ink-faded:#998677;
+    --line:#EBD9C2;
+    --card:#FFFCF6;
+    --shadow: 0 1px 0 rgba(42,30,22,.04), 0 8px 24px -12px rgba(42,30,22,.18);
+    --shadow-lg: 0 1px 0 rgba(42,30,22,.04), 0 24px 48px -20px rgba(42,30,22,.25);
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0}
+  body{
+    font-family:'Inter',system-ui,sans-serif;
+    background:
+      radial-gradient(1200px 600px at 90% -10%, #FFE4CC 0%, transparent 60%),
+      radial-gradient(900px 500px at -10% 110%, #DFF3E8 0%, transparent 55%),
+      radial-gradient(700px 400px at 110% 100%, #F3E7FF 0%, transparent 50%),
+      var(--cream);
+    color:var(--ink);
+    min-height:100vh;
+    overflow-x:hidden;
+    padding-bottom:80px;
+  }
+  /* subtle grain */
+  body::before{
+    content:"";
+    position:fixed;inset:0;
+    background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='160' height='160'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 0.16 0 0 0 0 0.12 0 0 0 0 0.08 0 0 0 0.08 0'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>");
+    pointer-events:none;
+    z-index:0;
+    mix-blend-mode:multiply;
+    opacity:.5;
+  }
+
+  .wrap{position:relative;z-index:1;max-width:1280px;margin:0 auto;padding:32px 28px;}
+
+  header.hero{
+    display:flex;flex-direction:column;gap:8px;
+    margin-bottom:28px;
+    position:relative;
+  }
+  .eyebrow{
+    display:inline-flex;align-items:center;gap:8px;
+    font-family:'JetBrains Mono',monospace;
+    font-size:11px;letter-spacing:.18em;text-transform:uppercase;
+    color:var(--ink-soft);
+    background:var(--card);
+    border:1px solid var(--line);
+    padding:6px 12px;border-radius:999px;
+    width:fit-content;
+    box-shadow:var(--shadow);
+  }
+  .eyebrow .dot{width:6px;height:6px;border-radius:50%;background:var(--mint-deep);box-shadow:0 0 0 3px rgba(63,179,137,.18);animation:pulse 2s ease-in-out infinite;}
+  @keyframes pulse{50%{box-shadow:0 0 0 6px rgba(63,179,137,0);}}
+  h1{
+    font-family:'Fraunces',serif;
+    font-weight:400;
+    font-size:clamp(44px,7vw,84px);
+    line-height:.95;
+    letter-spacing:-.03em;
+    margin:6px 0 0;
+    color:var(--ink);
+  }
+  h1 em{
+    font-style:italic;
+    font-weight:300;
+    color:var(--coral);
+    font-variation-settings:"SOFT" 100;
+  }
+  h1 .ornament{
+    display:inline-block;
+    color:var(--peach-deep);
+    transform:translateY(-.05em);
+  }
+  .lede{
+    font-family:'Fraunces',serif;
+    font-weight:300;
+    font-size:18px;
+    color:var(--ink-soft);
+    max-width:620px;
+    line-height:1.5;
+    margin:14px 0 0;
+  }
+  .lede code{
+    font-family:'JetBrains Mono',monospace;
+    background:var(--cream-2);
+    padding:1px 6px;border-radius:6px;font-size:13px;color:var(--ink);
+  }
+
+  /* control card */
+  .controls{
+    margin-top:28px;
+    background:var(--card);
+    border:1px solid var(--line);
+    border-radius:24px;
+    padding:20px;
+    box-shadow:var(--shadow);
+    display:grid;
+    grid-template-columns: 1fr 1fr auto;
+    gap:14px;
+    align-items:end;
+  }
+  @media(max-width:780px){
+    .controls{grid-template-columns:1fr;}
+  }
+  .field{display:flex;flex-direction:column;gap:8px;}
+  .field label{
+    font-family:'JetBrains Mono',monospace;
+    font-size:10px;letter-spacing:.18em;text-transform:uppercase;
+    color:var(--ink-faded);
+  }
+  .seg{
+    display:flex;background:var(--cream);border:1px solid var(--line);
+    border-radius:12px;padding:3px;gap:2px;
+  }
+  .seg button{
+    flex:1;border:0;background:transparent;
+    padding:9px 10px;border-radius:9px;
+    font-family:'JetBrains Mono',monospace;
+    font-size:12px;font-weight:500;
+    color:var(--ink-soft);
+    cursor:pointer;transition:all .18s ease;
+  }
+  .seg button:hover{color:var(--ink)}
+  .seg button.on{
+    background:var(--ink);
+    color:var(--cream);
+    box-shadow:0 2px 8px -2px rgba(42,30,22,.4);
+  }
+  .scan-btn{
+    background:var(--coral);
+    color:#fff;
+    border:none;
+    border-radius:14px;
+    padding:14px 22px;
+    font-family:'Fraunces',serif;
+    font-size:18px;font-weight:500;font-style:italic;
+    cursor:pointer;
+    box-shadow:0 4px 0 #D85A4D, 0 8px 20px -6px rgba(255,122,107,.6);
+    transition:all .15s ease;
+    min-width:140px;
+    letter-spacing:-.01em;
+  }
+  .scan-btn:hover{transform:translateY(-1px);box-shadow:0 5px 0 #D85A4D, 0 10px 24px -6px rgba(255,122,107,.7);}
+  .scan-btn:active{transform:translateY(2px);box-shadow:0 2px 0 #D85A4D, 0 4px 12px -4px rgba(255,122,107,.5);}
+  .scan-btn:disabled{background:var(--ink-faded);box-shadow:0 4px 0 #7A6856;cursor:not-allowed;}
+
+  /* progress strip */
+  .status{
+    margin-top:20px;
+    display:flex;align-items:center;gap:14px;
+    font-family:'JetBrains Mono',monospace;
+    font-size:12px;color:var(--ink-soft);
+    min-height:24px;
+  }
+  .progress{
+    flex:1;height:6px;background:var(--cream-2);border-radius:99px;overflow:hidden;
+    border:1px solid var(--line);
+  }
+  .progress-bar{
+    height:100%;width:0%;
+    background:linear-gradient(90deg,var(--mint),var(--mint-deep));
+    border-radius:99px;
+    transition:width .3s ease;
+  }
+  .stat-pill{
+    background:var(--card);border:1px solid var(--line);
+    padding:5px 10px;border-radius:99px;
+    color:var(--ink);
+  }
+  .stat-pill b{color:var(--coral);font-weight:700}
+
+  /* results */
+  .results-head{
+    margin:36px 0 16px;
+    display:flex;align-items:baseline;justify-content:space-between;gap:16px;flex-wrap:wrap;
+  }
+  .results-head h2{
+    font-family:'Fraunces',serif;font-weight:400;font-style:italic;
+    font-size:32px;letter-spacing:-.02em;margin:0;
+  }
+  .results-head h2 .count{
+    font-style:normal;font-weight:500;
+    background:var(--mint);color:var(--ink);
+    padding:2px 14px;border-radius:99px;font-size:22px;
+    margin-left:8px;display:inline-block;transform:translateY(-3px);
+  }
+  .legend{
+    font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--ink-faded);
+    letter-spacing:.05em;
+  }
+  .legend span{color:var(--coral);font-weight:700;}
+
+  .grid{
+    display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));
+    gap:16px;
+  }
+
+  .card{
+    background:var(--card);
+    border:1px solid var(--line);
+    border-radius:20px;
+    padding:18px;
+    box-shadow:var(--shadow);
+    transition:transform .2s ease, box-shadow .2s ease;
+    position:relative;
+    overflow:hidden;
+  }
+  .card:hover{transform:translateY(-2px);box-shadow:var(--shadow-lg);}
+  .card::before{
+    content:"";position:absolute;top:0;left:0;right:0;height:3px;
+    background:linear-gradient(90deg,var(--mint),var(--mint-deep));
+  }
+  .card.fresh::before{
+    background:linear-gradient(90deg,var(--coral-soft),var(--coral));
+  }
+  .card-head{
+    display:flex;align-items:center;justify-content:space-between;gap:12px;
+    margin-bottom:14px;
+  }
+  .pair{
+    font-family:'Fraunces',serif;font-weight:500;
+    font-size:22px;letter-spacing:-.01em;
+    color:var(--ink);
+  }
+  .pair .quote{color:var(--ink-faded);font-size:14px;font-weight:400;}
+  .badge{
+    font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.1em;
+    text-transform:uppercase;font-weight:700;
+    padding:4px 8px;border-radius:8px;
+    background:var(--mint);color:var(--ink);
+    white-space:nowrap;
+  }
+  .badge.fresh{background:var(--coral);color:#fff;}
+  .price{
+    font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--ink-soft);
+    margin-bottom:12px;display:flex;justify-content:space-between;align-items:center;
+  }
+  .change{font-weight:700;}
+  .change.up{color:var(--mint-deep)}
+  .change.down{color:var(--coral)}
+
+  .spark{
+    width:100%;height:64px;display:block;
+    margin:8px 0 12px;
+  }
+
+  .stats{
+    display:grid;grid-template-columns:1fr 1fr;gap:8px;
+    font-family:'JetBrains Mono',monospace;font-size:11px;
+  }
+  .stat{
+    background:var(--cream);border:1px solid var(--line);
+    border-radius:10px;padding:8px 10px;
+  }
+  .stat-label{color:var(--ink-faded);text-transform:uppercase;letter-spacing:.1em;font-size:9px;}
+  .stat-val{color:var(--ink);font-weight:700;font-size:13px;margin-top:2px;}
+  .stat-val.zero-near{color:var(--coral);}
+
+  .empty{
+    background:var(--card);border:1px dashed var(--line);
+    border-radius:20px;padding:48px 24px;text-align:center;
+    color:var(--ink-soft);
+  }
+  .empty .big{
+    font-family:'Fraunces',serif;font-style:italic;font-size:28px;
+    color:var(--ink);margin-bottom:8px;
+  }
+  .empty .small{font-family:'Inter',sans-serif;font-size:14px;}
+
+  .skeleton{
+    background:var(--card);border:1px solid var(--line);
+    border-radius:20px;height:230px;
+    position:relative;overflow:hidden;
+  }
+  .skeleton::after{
+    content:"";position:absolute;inset:0;
+    background:linear-gradient(90deg,transparent,rgba(255,217,183,.3),transparent);
+    animation:shim 1.4s linear infinite;
+  }
+  @keyframes shim{0%{transform:translateX(-100%)}100%{transform:translateX(100%)}}
+
+  footer{
+    margin-top:48px;text-align:center;
+    font-family:'JetBrains Mono',monospace;font-size:11px;
+    color:var(--ink-faded);letter-spacing:.08em;
+  }
+  footer .heart{color:var(--coral);}
+
+  /* tooltip on info icon */
+  .info{
+    display:inline-flex;align-items:center;justify-content:center;
+    width:14px;height:14px;border-radius:50%;
+    background:var(--cream-2);color:var(--ink-soft);
+    font-family:'Fraunces',serif;font-style:italic;font-size:10px;
+    cursor:help;margin-left:6px;
+    border:1px solid var(--line);
+    vertical-align:middle;
+  }
+
+  /* sort control */
+  .sort{
+    display:flex;gap:6px;align-items:center;
+    font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--ink-faded);
+  }
+  .sort select{
+    font-family:'JetBrains Mono',monospace;font-size:11px;
+    background:var(--card);border:1px solid var(--line);
+    border-radius:8px;padding:4px 8px;color:var(--ink);
+    cursor:pointer;
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header class="hero">
+    <span class="eyebrow"><span class="dot"></span>Binance Spot · Live Scanner</span>
+    <h1>MACD <em>bloom</em> <span class="ornament">✿</span></h1>
+    <p class="lede">
+      Hunting bullish golden crossovers blossoming through the zero line.
+      Scans the entire spot market with <code>MACD(10, 20, 7)</code> and surfaces only the pairs where momentum is just turning up <em>and</em> crossing zero — the sweet spot.
+    </p>
+  </header>
+
+  <section class="controls">
+    <div class="field">
+      <label>Timeframe</label>
+      <div class="seg" id="tf-seg">
+        <button data-t="15m">15m</button>
+        <button data-t="1h">1h</button>
+        <button class="on" data-t="4h">4h</button>
+        <button data-t="1d">1d</button>
+      </div>
+    </div>
+    <div class="field">
+      <label>Crossover Window</label>
+      <div class="seg" id="win-seg">
+        <button data-w="1">1 bar</button>
+        <button class="on" data-w="2">2 bars</button>
+        <button data-w="3">3 bars</button>
+        <button data-w="5">5 bars</button>
+      </div>
+    </div>
+    <button class="scan-btn" id="scan-btn">Scan now</button>
+  </section>
+
+  <div class="status">
+    <span id="status-text">Pick your settings, then tap scan ✿</span>
+    <div class="progress"><div class="progress-bar" id="bar"></div></div>
+    <span class="stat-pill">scanned <b id="scanned-n">0</b></span>
+    <span class="stat-pill">matches <b id="match-n">0</b></span>
+  </div>
+
+  <div class="results-head">
+    <h2>Bloomers <span class="count" id="result-count">0</span></h2>
+    <div style="display:flex;gap:14px;align-items:center;flex-wrap:wrap;">
+      <span class="legend"><span>●</span> just crossed zero · ● recent crossover</span>
+      <div class="sort">
+        sort by
+        <select id="sort-by">
+          <option value="zero">Closest to zero</option>
+          <option value="hist">Histogram strength</option>
+          <option value="vol">24h volume</option>
+          <option value="chg">24h change</option>
+          <option value="recent">Most recent cross</option>
+        </select>
+      </div>
+    </div>
+  </div>
+
+  <div id="grid" class="grid"></div>
+
+  <footer>
+    Made with <span class="heart">♡</span> · Public market data via data-api.binance.vision · Not financial advice
+  </footer>
+</div>
+
+<script>
+// ---------- state ----------
+const state = {
+  quote: 'USDT',
+  timeframe: '4h',
+  window: 2,           // crossover must be within last N closed bars
+  scanning: false,
+  results: [],
+  sortBy: 'zero',
+};
+
+// api.binance.com reliably sets Access-Control-Allow-Origin: * for these endpoints.
+// We try mirrors in order — if one is blocked in your region, the next may work.
+const API_HOSTS = [
+  'https://api.binance.com',
+  'https://api1.binance.com',
+  'https://api2.binance.com',
+  'https://api3.binance.com',
+  'https://data-api.binance.vision',
+];
+let API = API_HOSTS[0];
+
+async function pickWorkingHost(){
+  for (const host of API_HOSTS){
+    try {
+      const r = await fetch(`${host}/api/v3/ping`, { method:'GET' });
+      if (r.ok){ API = host; return host; }
+    } catch(e){ /* try next */ }
+  }
+  throw new Error('All Binance endpoints unreachable. Check network / VPN / region.');
+}
+const FAST = 10, SLOW = 20, SIGNAL = 7;
+const KLINE_LIMIT = 200;     // enough lookback for stable EMAs
+const CONCURRENCY = 8;       // parallel requests
+const BATCH_DELAY = 80;      // ms between dispatches
+
+// ---------- helpers ----------
+function ema(values, period){
+  const k = 2/(period+1);
+  const out = new Array(values.length);
+  // seed with SMA of first `period` values
+  let sum = 0;
+  for(let i=0;i<period;i++){ sum += values[i]; out[i] = NaN; }
+  out[period-1] = sum/period;
+  for(let i=period;i<values.length;i++){
+    out[i] = values[i]*k + out[i-1]*(1-k);
+  }
+  return out;
+}
+
+function computeMACD(closes){
+  if (closes.length < SLOW + SIGNAL + 5) return null;
+  const fast = ema(closes, FAST);
+  const slow = ema(closes, SLOW);
+  const macd = closes.map((_,i)=> (isFinite(fast[i]) && isFinite(slow[i])) ? fast[i]-slow[i] : NaN);
+  // signal is EMA of macd, but macd has leading NaNs; compute from first valid index
+  const startIdx = macd.findIndex(v=>isFinite(v));
+  const macdValid = macd.slice(startIdx);
+  const signalValid = ema(macdValid, SIGNAL);
+  const signal = new Array(macd.length).fill(NaN);
+  for(let i=0;i<signalValid.length;i++) signal[i+startIdx] = signalValid[i];
+  const hist = macd.map((m,i)=> (isFinite(m)&&isFinite(signal[i])) ? m-signal[i] : NaN);
+  return { macd, signal, hist };
+}
+
+// Detect bullish golden crossover near zero
+// Returns { ok, crossIdx, distFromZero, hist, macd, signal } or null
+function findGoldenZeroCross(macd, signal, hist, lookback){
+  // We use closed bars: ignore the very last (potentially in-progress) bar.
+  // Caller should have already excluded it; here we treat the array as closed bars.
+  const n = macd.length;
+  let crossIdx = -1;
+  for(let i=n-1; i>=Math.max(1, n-1-lookback); i--){
+    const prevDiff = macd[i-1] - signal[i-1];
+    const curDiff  = macd[i]   - signal[i];
+    if (isFinite(prevDiff) && isFinite(curDiff) && prevDiff <= 0 && curDiff > 0){
+      crossIdx = i; break;
+    }
+  }
+  if (crossIdx < 0) return null;
+
+  // Zero-line proximity / cross condition:
+  // Either MACD just crossed zero (sign change recently) OR MACD value sits very close to zero
+  // measured against recent ATR-like normalization (use std of macd values)
+  const recent = macd.slice(Math.max(0, crossIdx-30), crossIdx+1).filter(isFinite);
+  if (recent.length<5) return null;
+  const mean = recent.reduce((a,b)=>a+b,0)/recent.length;
+  const variance = recent.reduce((a,b)=>a+(b-mean)*(b-mean),0)/recent.length;
+  const std = Math.sqrt(variance) || 1e-9;
+
+  const macdAtCross = macd[crossIdx];
+  const macdPrev    = macd[Math.max(0,crossIdx-1)];
+
+  // condition A: MACD crossed zero from below at or near the crossover (within 3 bars)
+  let zeroCrossedRecently = false;
+  for(let j=Math.max(1, crossIdx-3); j<=Math.min(n-1, crossIdx+1); j++){
+    if (isFinite(macd[j-1]) && isFinite(macd[j]) && macd[j-1] <= 0 && macd[j] > 0){
+      zeroCrossedRecently = true; break;
+    }
+  }
+  // condition B: MACD value very close to zero relative to its recent volatility (within 0.6 std)
+  const closeToZero = Math.abs(macdAtCross) < 0.6 * std;
+
+  if (!zeroCrossedRecently && !closeToZero) return null;
+
+  return {
+    ok: true,
+    crossIdx,
+    barsAgo: (n-1) - crossIdx,
+    macd: macdAtCross,
+    macdPrev,
+    signal: signal[crossIdx],
+    hist: hist[crossIdx],
+    distFromZero: macdAtCross / std, // normalized
+    zeroCrossedRecently,
+  };
+}
+
+async function fetchAllPairs(quote){
+  const r = await fetch(`${API}/api/v3/exchangeInfo`);
+  const j = await r.json();
+  return j.symbols
+    .filter(s => s.status === 'TRADING'
+              && s.quoteAsset === quote
+              && s.isSpotTradingAllowed
+              && !s.symbol.includes('UP') && !s.symbol.includes('DOWN')
+              && !s.symbol.endsWith('BULL') && !s.symbol.endsWith('BEAR'))
+    .map(s => ({symbol:s.symbol, base:s.baseAsset, quote:s.quoteAsset}));
+}
+
+async function fetch24h(){
+  const r = await fetch(`${API}/api/v3/ticker/24hr`);
+  return await r.json();
+}
+
+async function fetchKlines(symbol, interval, limit){
+  const url = `${API}/api/v3/klines?symbol=${symbol}&interval=${interval}&limit=${limit}`;
+  const r = await fetch(url);
+  if (!r.ok) throw new Error(`klines ${symbol} ${r.status}`);
+  return await r.json();
+}
+
+// ---------- UI bindings ----------
+function bindSeg(id, key, parser=v=>v){
+  const seg = document.getElementById(id);
+  seg.addEventListener('click', e=>{
+    const b = e.target.closest('button'); if(!b) return;
+    seg.querySelectorAll('button').forEach(x=>x.classList.remove('on'));
+    b.classList.add('on');
+    state[key] = parser(b.dataset[Object.keys(b.dataset)[0]]);
+  });
+}
+bindSeg('tf-seg','timeframe');
+bindSeg('win-seg','window', v=>parseInt(v,10));
+
+document.getElementById('sort-by').addEventListener('change', e=>{
+  state.sortBy = e.target.value;
+  render();
+});
+
+document.getElementById('scan-btn').addEventListener('click', startScan);
+
+// ---------- scan ----------
+async function startScan(){
+  if (state.scanning) return;
+  state.scanning = true;
+  state.results = [];
+  document.getElementById('grid').innerHTML = '';
+  document.getElementById('result-count').textContent = '0';
+  document.getElementById('match-n').textContent = '0';
+  document.getElementById('scanned-n').textContent = '0';
+  document.getElementById('bar').style.width = '0%';
+  setStatus('gathering pairs…');
+  const btn = document.getElementById('scan-btn');
+  btn.disabled = true; btn.textContent = 'Scanning…';
+
+  try {
+    setStatus('finding a reachable endpoint…');
+    const host = await pickWorkingHost();
+    setStatus(`connected to ${host.replace('https://','')} · gathering pairs…`);
+    const [pairs, ticker24h] = await Promise.all([fetchAllPairs(state.quote), fetch24h()]);
+    const tickerMap = new Map(ticker24h.map(t=>[t.symbol,t]));
+    setStatus(`scanning ${pairs.length} ${state.quote} pairs on ${state.timeframe}…`);
+
+    let scanned=0, matched=0;
+    // skeleton placeholders for first ~6
+    for(let i=0;i<6;i++){
+      const sk = document.createElement('div'); sk.className='skeleton';
+      document.getElementById('grid').appendChild(sk);
+    }
+
+    // simple worker pool
+    let cursor = 0;
+    async function worker(){
+      while(cursor < pairs.length){
+        const idx = cursor++;
+        const p = pairs[idx];
+        try {
+          const k = await fetchKlines(p.symbol, state.timeframe, KLINE_LIMIT);
+          if (k && k.length > SLOW+SIGNAL+10){
+            // last bar may be in-progress; analyze closed bars only
+            const closes = k.slice(0,-1).map(row=>parseFloat(row[4]));
+            const lastClose = parseFloat(k[k.length-1][4]);
+            const macdRes = computeMACD(closes);
+            if (macdRes){
+              const det = findGoldenZeroCross(macdRes.macd, macdRes.signal, macdRes.hist, state.window);
+              if (det){
+                const tk = tickerMap.get(p.symbol) || {};
+                const result = {
+                  ...p,
+                  lastClose,
+                  closes,
+                  macdSeries: macdRes.macd,
+                  signalSeries: macdRes.signal,
+                  histSeries: macdRes.hist,
+                  detection: det,
+                  pctChange: parseFloat(tk.priceChangePercent || '0'),
+                  quoteVolume: parseFloat(tk.quoteVolume || '0'),
+                };
+                state.results.push(result);
+                matched++;
+                document.getElementById('match-n').textContent = matched;
+                // remove a skeleton if any
+                const sk = document.getElementById('grid').querySelector('.skeleton');
+                if (sk) sk.remove();
+                appendCard(result);
+              }
+            }
+          }
+        } catch(e){
+          // skip on error
+        }
+        scanned++;
+        document.getElementById('scanned-n').textContent = scanned;
+        document.getElementById('bar').style.width = `${(scanned/pairs.length)*100}%`;
+        if (scanned % 5 === 0) setStatus(`scanned ${scanned}/${pairs.length} · ${matched} bloomers found`);
+        await new Promise(r=>setTimeout(r, BATCH_DELAY));
+      }
+    }
+    const workers = Array.from({length: CONCURRENCY}, ()=>worker());
+    await Promise.all(workers);
+
+    // remove any remaining skeletons
+    document.querySelectorAll('#grid .skeleton').forEach(s=>s.remove());
+
+    setStatus(`done · scanned ${scanned} · ${matched} bloomers found ✿`);
+    render(); // re-sort with chosen criterion
+  } catch(e){
+    setStatus(`error: ${e.message}`);
+  } finally {
+    state.scanning = false;
+    btn.disabled = false; btn.textContent = 'Scan now';
+  }
+}
+
+function setStatus(t){ document.getElementById('status-text').textContent = t; }
+
+// ---------- rendering ----------
+function fmtPrice(p){
+  if (!isFinite(p)) return '—';
+  if (p >= 1000) return p.toFixed(2);
+  if (p >= 1) return p.toFixed(4);
+  if (p >= 0.01) return p.toFixed(5);
+  if (p >= 0.0001) return p.toFixed(7);
+  return p.toExponential(3);
+}
+function fmtVol(v){
+  if (!isFinite(v)) return '—';
+  if (v >= 1e9) return (v/1e9).toFixed(2)+'B';
+  if (v >= 1e6) return (v/1e6).toFixed(2)+'M';
+  if (v >= 1e3) return (v/1e3).toFixed(1)+'K';
+  return v.toFixed(0);
+}
+
+function spark(closes){
+  // last 60 closes
+  const data = closes.slice(-60);
+  const n = data.length;
+  const min = Math.min(...data), max = Math.max(...data);
+  const range = (max-min) || 1;
+  const w = 260, h = 64, pad = 4;
+  const pts = data.map((v,i)=>{
+    const x = pad + (i/(n-1))*(w-2*pad);
+    const y = h-pad - ((v-min)/range)*(h-2*pad);
+    return `${x.toFixed(1)},${y.toFixed(1)}`;
+  }).join(' ');
+  const lastUp = data[n-1] >= data[0];
+  const stroke = lastUp ? 'var(--mint-deep)' : 'var(--coral)';
+  const fill = lastUp ? 'rgba(63,179,137,.15)' : 'rgba(255,122,107,.15)';
+  return `
+    <svg class="spark" viewBox="0 0 ${w} ${h}" preserveAspectRatio="none">
+      <polyline points="${pad},${h-pad} ${pts} ${w-pad},${h-pad}" fill="${fill}" stroke="none"/>
+      <polyline points="${pts}" fill="none" stroke="${stroke}" stroke-width="1.6" stroke-linejoin="round" stroke-linecap="round"/>
+    </svg>`;
+}
+
+function cardHTML(r){
+  const det = r.detection;
+  const fresh = det.zeroCrossedRecently;
+  const chgClass = r.pctChange >= 0 ? 'up' : 'down';
+  const chgSign = r.pctChange >= 0 ? '+' : '';
+  return `
+    <div class="card ${fresh?'fresh':''}">
+      <div class="card-head">
+        <div class="pair">${r.base}<span class="quote">/${r.quote}</span></div>
+        <div class="badge ${fresh?'fresh':''}">${fresh?'zero cross':'cross only'}</div>
+      </div>
+      <div class="price">
+        <span>$${fmtPrice(r.lastClose)}</span>
+        <span class="change ${chgClass}">${chgSign}${r.pctChange.toFixed(2)}% 24h</span>
+      </div>
+      ${spark(r.closes)}
+      <div class="stats">
+        <div class="stat"><div class="stat-label">Bars since cross</div><div class="stat-val">${det.barsAgo}</div></div>
+        <div class="stat"><div class="stat-label">Histogram</div><div class="stat-val">${det.hist.toExponential(2)}</div></div>
+        <div class="stat"><div class="stat-label">MACD</div><div class="stat-val ${Math.abs(det.distFromZero)<0.4?'zero-near':''}">${det.macd.toExponential(2)}</div></div>
+        <div class="stat"><div class="stat-label">24h vol</div><div class="stat-val">${fmtVol(r.quoteVolume)}</div></div>
+      </div>
+    </div>`;
+}
+
+function appendCard(r){
+  const grid = document.getElementById('grid');
+  grid.insertAdjacentHTML('beforeend', cardHTML(r));
+  document.getElementById('result-count').textContent = state.results.length;
+}
+
+function render(){
+  const list = [...state.results];
+  switch(state.sortBy){
+    case 'zero': list.sort((a,b)=>Math.abs(a.detection.distFromZero)-Math.abs(b.detection.distFromZero)); break;
+    case 'hist': list.sort((a,b)=>b.detection.hist - a.detection.hist); break;
+    case 'vol':  list.sort((a,b)=>b.quoteVolume - a.quoteVolume); break;
+    case 'chg':  list.sort((a,b)=>b.pctChange - a.pctChange); break;
+    case 'recent': list.sort((a,b)=>a.detection.barsAgo - b.detection.barsAgo); break;
+  }
+  const grid = document.getElementById('grid');
+  grid.innerHTML = '';
+  if (list.length === 0){
+    grid.innerHTML = `<div class="empty" style="grid-column:1/-1">
+      <div class="big">No bloomers right now ✿</div>
+      <div class="small">Try a different timeframe, widen the crossover window, or scan again in a bit.</div>
+    </div>`;
+    document.getElementById('result-count').textContent = '0';
+    return;
+  }
+  list.forEach(r => grid.insertAdjacentHTML('beforeend', cardHTML(r)));
+  document.getElementById('result-count').textContent = list.length;
+}
+
+// initial empty state
+render();
+</script>
+</body>
+</html>
