@@ -1,0 +1,1301 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>MACD Bloom · Binance Spot Scanner</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300..900;1,9..144,300..900&family=JetBrains+Mono:wght@400;500;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg-0:#13101C;
+    --bg-1:#1B1626;
+    --bg-2:#241C32;
+    --bg-3:#2E2440;
+    --card:#1E1929;
+    --card-hi:#27203A;
+    --line:#352B4D;
+    --line-soft:#28213B;
+
+    --ink:#F5E9F0;        /* cream-pink primary */
+    --ink-soft:#B7A6C4;
+    --ink-faded:#7B6E8C;
+
+    --pink:#FF8FB3;        /* hot pink coral */
+    --pink-soft:#FFB6C8;
+    --rose:#E84B7C;
+    --lavender:#C4A8FF;
+    --lavender-soft:#A98BE6;
+    --mint:#7FE3C0;
+    --mint-soft:#5BC9A4;
+    --gold:#FFD89B;
+
+    --shadow-glow: 0 0 0 1px rgba(196,168,255,.06), 0 8px 28px -8px rgba(196,168,255,.18);
+    --shadow-glow-lg: 0 0 0 1px rgba(196,168,255,.1), 0 24px 60px -20px rgba(255,143,179,.28);
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0}
+  body{
+    font-family:'Inter',system-ui,sans-serif;
+    background:
+      radial-gradient(900px 500px at 88% -8%, rgba(255,143,179,.12) 0%, transparent 55%),
+      radial-gradient(800px 480px at -10% 30%, rgba(196,168,255,.14) 0%, transparent 55%),
+      radial-gradient(700px 400px at 110% 100%, rgba(127,227,192,.08) 0%, transparent 55%),
+      var(--bg-0);
+    color:var(--ink);
+    min-height:100vh;
+    overflow-x:hidden;
+    padding-bottom:80px;
+  }
+  /* twinkling stars overlay */
+  body::before{
+    content:"";
+    position:fixed;inset:0;
+    background-image:
+      radial-gradient(1.2px 1.2px at 12% 18%, rgba(255,255,255,.7), transparent),
+      radial-gradient(1px 1px at 67% 8%, rgba(255,255,255,.5), transparent),
+      radial-gradient(1.4px 1.4px at 38% 72%, rgba(255,182,200,.6), transparent),
+      radial-gradient(1px 1px at 88% 42%, rgba(196,168,255,.7), transparent),
+      radial-gradient(1.2px 1.2px at 22% 88%, rgba(255,255,255,.4), transparent),
+      radial-gradient(1px 1px at 78% 78%, rgba(127,227,192,.5), transparent),
+      radial-gradient(1.4px 1.4px at 52% 32%, rgba(255,255,255,.5), transparent),
+      radial-gradient(1px 1px at 8% 58%, rgba(255,255,255,.45), transparent);
+    pointer-events:none;
+    z-index:0;
+    animation:twinkle 6s ease-in-out infinite;
+  }
+  @keyframes twinkle{50%{opacity:.55}}
+  /* subtle grain */
+  body::after{
+    content:"";
+    position:fixed;inset:0;
+    background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='160' height='160'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 1 0 0 0 0 1 0 0 0 0 1 0 0 0 0.04 0'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>");
+    pointer-events:none;
+    z-index:0;
+    mix-blend-mode:screen;
+    opacity:.6;
+  }
+
+  .wrap{position:relative;z-index:1;max-width:1280px;margin:0 auto;padding:32px 28px;}
+
+  header.hero{
+    display:flex;flex-direction:column;gap:8px;
+    margin-bottom:28px;
+    position:relative;
+  }
+  .eyebrow{
+    display:inline-flex;align-items:center;gap:8px;
+    font-family:'JetBrains Mono',monospace;
+    font-size:11px;letter-spacing:.18em;text-transform:uppercase;
+    color:var(--ink-soft);
+    background:rgba(46,36,64,.6);
+    border:1px solid var(--line);
+    padding:6px 12px;border-radius:999px;
+    width:fit-content;
+    backdrop-filter:blur(8px);
+    box-shadow:var(--shadow-glow);
+  }
+  .eyebrow .dot{width:6px;height:6px;border-radius:50%;background:var(--mint);box-shadow:0 0 10px var(--mint), 0 0 0 3px rgba(127,227,192,.18);animation:pulse 2s ease-in-out infinite;}
+  @keyframes pulse{50%{box-shadow:0 0 14px var(--mint), 0 0 0 6px rgba(127,227,192,0);}}
+  h1{
+    font-family:'Fraunces',serif;
+    font-weight:300;
+    font-size:clamp(44px,7vw,84px);
+    line-height:.95;
+    letter-spacing:-.03em;
+    margin:6px 0 0;
+    color:var(--ink);
+  }
+  h1 em{
+    font-style:italic;
+    font-weight:300;
+    background:linear-gradient(135deg,var(--pink) 0%, var(--lavender) 100%);
+    -webkit-background-clip:text;
+    background-clip:text;
+    -webkit-text-fill-color:transparent;
+    font-variation-settings:"SOFT" 100;
+  }
+  h1 .ornament{
+    display:inline-block;
+    color:var(--pink);
+    transform:translateY(-.05em);
+    text-shadow:0 0 24px rgba(255,143,179,.6);
+    animation:float 4s ease-in-out infinite;
+  }
+  @keyframes float{50%{transform:translateY(-.15em) rotate(8deg)}}
+  .lede{
+    font-family:'Fraunces',serif;
+    font-weight:300;
+    font-size:18px;
+    color:var(--ink-soft);
+    max-width:620px;
+    line-height:1.5;
+    margin:14px 0 0;
+  }
+  .lede em{font-style:italic;color:var(--pink-soft);}
+  .lede code{
+    font-family:'JetBrains Mono',monospace;
+    background:var(--bg-2);
+    padding:1px 8px;border-radius:6px;font-size:13px;color:var(--lavender);
+    border:1px solid var(--line);
+  }
+
+  /* control card */
+  .controls{
+    margin-top:28px;
+    background:linear-gradient(180deg,var(--card) 0%, var(--bg-1) 100%);
+    border:1px solid var(--line);
+    border-radius:24px;
+    padding:20px;
+    box-shadow:var(--shadow-glow);
+    display:grid;
+    grid-template-columns: 1fr 1fr 1fr auto;
+    gap:14px;
+    align-items:end;
+  }
+  @media(max-width:780px){
+    .controls{grid-template-columns:1fr;}
+  }
+  .field{display:flex;flex-direction:column;gap:8px;}
+  .field label{
+    font-family:'JetBrains Mono',monospace;
+    font-size:10px;letter-spacing:.18em;text-transform:uppercase;
+    color:var(--ink-faded);
+  }
+  .seg{
+    display:flex;background:var(--bg-0);border:1px solid var(--line);
+    border-radius:12px;padding:3px;gap:2px;
+  }
+  .seg button{
+    flex:1;border:0;background:transparent;
+    padding:9px 10px;border-radius:9px;
+    font-family:'JetBrains Mono',monospace;
+    font-size:12px;font-weight:500;
+    color:var(--ink-soft);
+    cursor:pointer;transition:all .18s ease;
+  }
+  .seg button:hover{color:var(--ink)}
+  .seg button.on{
+    background:linear-gradient(135deg,var(--pink) 0%, var(--rose) 100%);
+    color:#fff;
+    box-shadow:0 4px 14px -4px rgba(232,75,124,.6), inset 0 1px 0 rgba(255,255,255,.2);
+  }
+  .scan-btn{
+    background:linear-gradient(135deg,var(--pink) 0%, var(--lavender) 100%);
+    color:#1B1626;
+    border:none;
+    border-radius:14px;
+    padding:14px 22px;
+    font-family:'Fraunces',serif;
+    font-size:18px;font-weight:600;font-style:italic;
+    cursor:pointer;
+    box-shadow:
+      0 0 0 1px rgba(255,255,255,.15) inset,
+      0 4px 0 rgba(0,0,0,.3),
+      0 8px 24px -4px rgba(255,143,179,.5),
+      0 12px 40px -8px rgba(196,168,255,.4);
+    transition:all .15s ease;
+    min-width:140px;
+    letter-spacing:-.01em;
+  }
+  .scan-btn:hover{
+    transform:translateY(-1px);
+    box-shadow:
+      0 0 0 1px rgba(255,255,255,.2) inset,
+      0 5px 0 rgba(0,0,0,.3),
+      0 10px 30px -4px rgba(255,143,179,.65),
+      0 14px 50px -8px rgba(196,168,255,.55);
+  }
+  .scan-btn:active{transform:translateY(2px);box-shadow:0 0 0 1px rgba(255,255,255,.15) inset, 0 2px 0 rgba(0,0,0,.3), 0 4px 12px -4px rgba(255,143,179,.4);}
+  .scan-btn:disabled{background:var(--bg-3);color:var(--ink-faded);box-shadow:0 4px 0 rgba(0,0,0,.3);cursor:not-allowed;}
+
+  /* progress strip */
+  .status{
+    margin-top:20px;
+    display:flex;align-items:center;gap:14px;
+    font-family:'JetBrains Mono',monospace;
+    font-size:12px;color:var(--ink-soft);
+    min-height:24px;
+    flex-wrap:wrap;
+  }
+  .progress{
+    flex:1;min-width:120px;height:6px;background:var(--bg-2);border-radius:99px;overflow:hidden;
+    border:1px solid var(--line);
+    box-shadow:inset 0 1px 2px rgba(0,0,0,.4);
+  }
+  .progress-bar{
+    height:100%;width:0%;
+    background:linear-gradient(90deg,var(--pink),var(--lavender),var(--mint));
+    background-size:200% 100%;
+    border-radius:99px;
+    transition:width .3s ease;
+    box-shadow:0 0 12px rgba(255,143,179,.5);
+    animation:shift 3s linear infinite;
+  }
+  @keyframes shift{0%{background-position:0% 50%}100%{background-position:200% 50%}}
+  .stat-pill{
+    background:var(--card);border:1px solid var(--line);
+    padding:5px 10px;border-radius:99px;
+    color:var(--ink);
+  }
+  .stat-pill b{color:var(--pink);font-weight:700}
+
+  /* results */
+  .results-head{
+    margin:36px 0 16px;
+    display:flex;align-items:baseline;justify-content:space-between;gap:16px;flex-wrap:wrap;
+  }
+  .results-head h2{
+    font-family:'Fraunces',serif;font-weight:300;font-style:italic;
+    font-size:32px;letter-spacing:-.02em;margin:0;
+    color:var(--ink);
+  }
+  .results-head h2 .count{
+    font-style:normal;font-weight:600;
+    background:linear-gradient(135deg,var(--mint) 0%, var(--lavender) 100%);
+    color:var(--bg-0);
+    padding:2px 14px;border-radius:99px;font-size:22px;
+    margin-left:8px;display:inline-block;transform:translateY(-3px);
+    box-shadow:0 4px 16px -4px rgba(127,227,192,.4);
+  }
+  .legend{
+    font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--ink-faded);
+    letter-spacing:.05em;
+  }
+  .legend span{color:var(--pink);font-weight:700;}
+
+  .sort{
+    display:flex;gap:6px;align-items:center;
+    font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--ink-faded);
+  }
+  .sort select{
+    font-family:'JetBrains Mono',monospace;font-size:11px;
+    background:var(--card);border:1px solid var(--line);
+    border-radius:8px;padding:5px 8px;color:var(--ink);
+    cursor:pointer;
+  }
+
+  .grid{
+    display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));
+    gap:16px;
+  }
+
+  .card{
+    background:linear-gradient(180deg,var(--card-hi) 0%, var(--card) 100%);
+    border:1px solid var(--line);
+    border-radius:20px;
+    padding:18px;
+    box-shadow:var(--shadow-glow);
+    transition:transform .25s ease, box-shadow .25s ease, border-color .25s ease;
+    position:relative;
+    overflow:hidden;
+  }
+  .card:hover{
+    transform:translateY(-3px);
+    box-shadow:var(--shadow-glow-lg);
+    border-color:rgba(196,168,255,.4);
+  }
+  .card::before{
+    content:"";position:absolute;top:0;left:0;right:0;height:2px;
+    background:linear-gradient(90deg,var(--pink),var(--lavender),var(--mint));
+    opacity:.9;
+  }
+  /* sparkle decoration */
+  .card::after{
+    content:"✦";
+    position:absolute;
+    top:14px;right:62px;
+    font-size:10px;
+    color:var(--lavender);
+    opacity:.5;
+    animation:twinkle2 3s ease-in-out infinite;
+  }
+  @keyframes twinkle2{50%{opacity:.15;transform:scale(.8)}}
+
+  .card-head{
+    display:flex;align-items:center;justify-content:space-between;gap:12px;
+    margin-bottom:14px;
+  }
+  .pair{
+    font-family:'Fraunces',serif;font-weight:500;
+    font-size:22px;letter-spacing:-.01em;
+    color:var(--ink);
+  }
+  .pair .quote{color:var(--ink-faded);font-size:14px;font-weight:300;font-style:italic;}
+  .badge{
+    font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.08em;
+    text-transform:uppercase;font-weight:700;
+    padding:4px 9px;border-radius:8px;
+    background:linear-gradient(135deg,var(--pink) 0%, var(--rose) 100%);
+    color:#fff;
+    white-space:nowrap;
+    box-shadow:0 2px 10px -2px rgba(232,75,124,.5);
+  }
+  .price{
+    font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--ink-soft);
+    margin-bottom:12px;display:flex;justify-content:space-between;align-items:center;
+  }
+  .change{font-weight:700;}
+  .change.up{color:var(--mint)}
+  .change.down{color:var(--pink)}
+
+  .spark{
+    width:100%;height:44px;display:block;
+    margin:8px 0 2px;
+  }
+  .macd-chart{
+    width:100%;height:52px;display:block;
+    margin:2px 0 12px;
+  }
+  .chart-label{
+    display:flex;gap:12px;justify-content:flex-end;
+    font-family:'JetBrains Mono',monospace;font-size:8.5px;
+    letter-spacing:.08em;text-transform:uppercase;
+    color:var(--ink-faded);
+    margin:2px 2px 0;
+  }
+  .lbl-macd{color:var(--pink);}
+  .lbl-sig{color:var(--lavender-soft);}
+  .lbl-dot{color:var(--gold);}
+
+  /* ---- Claude AI read panel ---- */
+  .ai-panel{
+    margin-top:18px;
+    background:linear-gradient(180deg,var(--card) 0%, var(--bg-1) 100%);
+    border:1px solid var(--line);
+    border-radius:20px;
+    padding:18px 20px;
+    box-shadow:var(--shadow-glow);
+  }
+  .ai-head{display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap;}
+  .ai-title{
+    font-family:'Fraunces',serif;font-style:italic;font-weight:400;
+    font-size:20px;color:var(--ink);
+    display:flex;align-items:center;gap:10px;flex-wrap:wrap;
+  }
+  .ai-glyph{
+    color:var(--gold);font-style:normal;
+    text-shadow:0 0 14px rgba(255,216,155,.7);
+    animation:twinkle2 3s ease-in-out infinite;
+  }
+  .ai-output{
+    display:none;
+    margin-top:14px;
+    font-family:'Inter',sans-serif;font-size:14px;line-height:1.65;
+    color:var(--ink-soft);
+    background:var(--bg-0);
+    border:1px solid var(--line);
+    border-radius:14px;
+    padding:16px 18px;
+    white-space:pre-wrap;
+  }
+  .ai-output.show{display:block;}
+  .ai-output.thinking{
+    color:var(--lavender);
+    font-style:italic;
+  }
+  .ai-output strong{color:var(--ink);}
+
+  .stats{
+    display:grid;grid-template-columns:1fr 1fr;gap:8px;
+    font-family:'JetBrains Mono',monospace;font-size:11px;
+  }
+  .stat{
+    background:var(--bg-1);border:1px solid var(--line-soft);
+    border-radius:10px;padding:8px 10px;
+  }
+  .stat-label{color:var(--ink-faded);text-transform:uppercase;letter-spacing:.1em;font-size:9px;}
+  .stat-val{color:var(--ink);font-weight:700;font-size:13px;margin-top:2px;}
+
+  .empty{
+    background:var(--card);border:1px dashed var(--line);
+    border-radius:20px;padding:48px 24px;text-align:center;
+    color:var(--ink-soft);
+  }
+  .empty .big{
+    font-family:'Fraunces',serif;font-style:italic;font-size:28px;font-weight:300;
+    color:var(--ink);margin-bottom:8px;
+    background:linear-gradient(135deg,var(--pink),var(--lavender));
+    -webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;
+  }
+  .empty .small{font-family:'Inter',sans-serif;font-size:14px;}
+
+  .skeleton{
+    background:var(--card);border:1px solid var(--line);
+    border-radius:20px;height:230px;
+    position:relative;overflow:hidden;
+  }
+  .skeleton::after{
+    content:"";position:absolute;inset:0;
+    background:linear-gradient(90deg,transparent,rgba(196,168,255,.1),transparent);
+    animation:shim 1.4s linear infinite;
+  }
+  @keyframes shim{0%{transform:translateX(-100%)}100%{transform:translateX(100%)}}
+
+  footer{
+    margin-top:48px;text-align:center;
+    font-family:'JetBrains Mono',monospace;font-size:11px;
+    color:var(--ink-faded);letter-spacing:.08em;
+  }
+  footer .heart{color:var(--pink);text-shadow:0 0 8px rgba(255,143,179,.6);}
+
+  /* ---- Discord alerts panel ---- */
+  .alerts-panel{
+    margin-top:18px;
+    background:linear-gradient(180deg,var(--card) 0%, var(--bg-1) 100%);
+    border:1px solid var(--line);
+    border-radius:20px;
+    padding:18px 20px;
+    box-shadow:var(--shadow-glow);
+  }
+  .alerts-head{
+    display:flex;align-items:center;justify-content:space-between;gap:16px;
+  }
+  .alerts-title{
+    font-family:'Fraunces',serif;font-style:italic;font-weight:400;
+    font-size:20px;color:var(--ink);
+    display:flex;align-items:center;gap:10px;flex-wrap:wrap;
+  }
+  .discord-glyph{
+    color:var(--lavender);font-style:normal;
+    text-shadow:0 0 14px rgba(196,168,255,.7);
+    animation:float 4s ease-in-out infinite;
+  }
+  .alerts-sub{
+    font-family:'JetBrains Mono',monospace;font-style:normal;
+    font-size:10px;letter-spacing:.08em;text-transform:uppercase;
+    color:var(--ink-faded);
+  }
+  .alerts-body{
+    margin-top:0;max-height:0;overflow:hidden;opacity:0;
+    transition:max-height .35s ease, opacity .3s ease, margin-top .35s ease;
+  }
+  .alerts-body.open{max-height:240px;opacity:1;margin-top:16px;}
+  .webhook-row{display:flex;gap:10px;}
+  .webhook-input{
+    flex:1;
+    background:var(--bg-0);
+    border:1px solid var(--line);
+    border-radius:12px;
+    padding:11px 14px;
+    color:var(--ink);
+    font-family:'JetBrains Mono',monospace;font-size:12px;
+    outline:none;transition:border-color .2s ease, box-shadow .2s ease;
+  }
+  .webhook-input::placeholder{color:var(--ink-faded);}
+  .webhook-input:focus{
+    border-color:var(--lavender);
+    box-shadow:0 0 0 3px rgba(196,168,255,.15);
+  }
+  .ghost-btn{
+    background:var(--bg-2);
+    color:var(--lavender);
+    border:1px solid var(--line);
+    border-radius:12px;
+    padding:0 16px;
+    font-family:'JetBrains Mono',monospace;font-size:12px;font-weight:500;
+    cursor:pointer;white-space:nowrap;
+    transition:all .18s ease;
+  }
+  .ghost-btn:hover{background:var(--bg-3);border-color:var(--lavender);color:var(--ink);}
+  .ghost-btn:active{transform:translateY(1px);}
+  .ghost-btn.sent{color:var(--mint);border-color:var(--mint);}
+  .alerts-options{
+    margin-top:12px;display:flex;align-items:center;gap:12px;flex-wrap:wrap;
+  }
+  .check-inline{
+    display:flex;align-items:center;gap:8px;cursor:pointer;
+    font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--ink-soft);
+  }
+  .check-inline input{accent-color:var(--pink);width:15px;height:15px;cursor:pointer;}
+  .seg-sm button{padding:6px 10px;font-size:11px;}
+  .seg-sm{opacity:.5;pointer-events:none;transition:opacity .2s ease;}
+  .seg-sm.live{opacity:1;pointer-events:auto;}
+  .alerts-note{
+    margin-left:auto;
+    font-family:'JetBrains Mono',monospace;font-size:10px;
+    color:var(--ink-faded);letter-spacing:.05em;
+  }
+  /* toggle switch */
+  .switch{position:relative;display:inline-block;width:48px;height:27px;flex:none;}
+  .switch input{opacity:0;width:0;height:0;}
+  .slider{
+    position:absolute;cursor:pointer;inset:0;
+    background:var(--bg-3);border:1px solid var(--line);
+    border-radius:99px;transition:.25s;
+  }
+  .slider::before{
+    content:"";position:absolute;height:19px;width:19px;left:3px;bottom:3px;
+    background:var(--ink-soft);border-radius:50%;transition:.25s;
+  }
+  .switch input:checked + .slider{
+    background:linear-gradient(135deg,var(--pink),var(--lavender));
+    border-color:transparent;
+  }
+  .switch input:checked + .slider::before{
+    transform:translateX(21px);background:#fff;
+    box-shadow:0 0 10px rgba(255,255,255,.5);
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header class="hero">
+    <span class="eyebrow"><span class="dot"></span>Binance Spot · Live Scanner</span>
+    <h1>MACD <em>bloom</em> <span class="ornament">☾</span></h1>
+    <p class="lede">
+      Hunting bullish golden crossovers blossoming through the zero line.
+      Scans the entire spot market with <code>MACD(10, 20, 7)</code> and surfaces only the pairs where MACD crosses <em>negative → positive</em> together with the signal cross — the moment momentum truly flips.
+    </p>
+  </header>
+
+  <section class="controls">
+    <div class="field">
+      <label>Timeframe</label>
+      <div class="seg" id="tf-seg">
+        <button data-t="15m">15m</button>
+        <button data-t="1h">1h</button>
+        <button class="on" data-t="4h">4h</button>
+        <button data-t="1d">1d</button>
+      </div>
+    </div>
+    <div class="field">
+      <label>Crossover Window</label>
+      <div class="seg" id="win-seg">
+        <button data-w="1">1 bar</button>
+        <button class="on" data-w="2">2 bars</button>
+        <button data-w="3">3 bars</button>
+        <button data-w="5">5 bars</button>
+      </div>
+    </div>
+    <div class="field">
+      <label>Min 24h Volume</label>
+      <div class="seg" id="vol-seg">
+        <button data-v="0">any</button>
+        <button class="on" data-v="1000000">1M+</button>
+        <button data-v="5000000">5M+</button>
+        <button data-v="20000000">20M+</button>
+      </div>
+    </div>
+    <button class="scan-btn" id="scan-btn">Scan now</button>
+  </section>
+
+  <div class="status">
+    <span id="status-text">Pick your settings, then tap scan ☾</span>
+    <div class="progress"><div class="progress-bar" id="bar"></div></div>
+    <span class="stat-pill">scanned <b id="scanned-n">0</b></span>
+    <span class="stat-pill">matches <b id="match-n">0</b></span>
+  </div>
+
+  <section class="alerts-panel">
+    <div class="alerts-head">
+      <div class="alerts-title">
+        <span class="discord-glyph">✿</span>
+        Discord alerts
+        <span class="alerts-sub">ping a channel when a fresh bloomer appears</span>
+      </div>
+      <label class="switch">
+        <input type="checkbox" id="alerts-toggle">
+        <span class="slider"></span>
+      </label>
+    </div>
+    <div class="alerts-body" id="alerts-body">
+      <div class="webhook-row">
+        <input type="password" id="webhook-input" class="webhook-input"
+               placeholder="https://discord.com/api/webhooks/…" autocomplete="off" spellcheck="false">
+        <button class="ghost-btn" id="test-btn">Send test</button>
+      </div>
+      <div class="alerts-options">
+        <label class="check-inline">
+          <input type="checkbox" id="rescan-toggle">
+          <span>Auto-rescan every</span>
+        </label>
+        <div class="seg seg-sm" id="rescan-seg">
+          <button data-m="5">5m</button>
+          <button class="on" data-m="15">15m</button>
+          <button data-m="30">30m</button>
+          <button data-m="60">1h</button>
+        </div>
+        <span class="alerts-note" id="alerts-note">stablecoin & fiat pairs are excluded ♡</span>
+      </div>
+    </div>
+  </section>
+
+  <section class="ai-panel" id="ai-panel" style="display:none">
+    <div class="ai-head">
+      <div class="ai-title"><span class="ai-glyph">✦</span> Claude's read <span class="alerts-sub">an AI synthesis of this scan's bloomers</span></div>
+      <button class="ghost-btn" id="ai-btn">Ask Claude ☾</button>
+    </div>
+    <div class="ai-output" id="ai-output"></div>
+  </section>
+
+  <div class="results-head">
+    <h2>Bloomers <span class="count" id="result-count">0</span></h2>
+    <div style="display:flex;gap:14px;align-items:center;flex-wrap:wrap;">
+      <span class="legend">strict mode · MACD crossed <span>negative → positive</span> & signal cross</span>
+      <div class="sort">
+        sort by
+        <select id="sort-by">
+          <option value="recent">Most recent zero cross</option>
+          <option value="hist">Histogram strength</option>
+          <option value="vol">24h volume</option>
+          <option value="chg">24h change</option>
+          <option value="zero">Closest to zero</option>
+        </select>
+      </div>
+    </div>
+  </div>
+
+  <div id="grid" class="grid"></div>
+
+  <footer>
+    Made with <span class="heart">♡</span> · Public market data via data-api.binance.vision · Not financial advice
+  </footer>
+</div>
+
+<script>
+// ---------- state ----------
+const state = {
+  quote: 'USDT',
+  timeframe: '4h',
+  window: 2,           // crossover must be within last N closed bars
+  scanning: false,
+  results: [],
+  sortBy: 'recent',
+  minVol: 1000000,     // skip pairs below this 24h quote volume
+  // discord alerts
+  alertsOn: false,
+  webhook: '',
+  rescanOn: false,
+  rescanMins: 15,
+  alertedKeys: new Set(),   // dedupe so the same cross isn't re-pinged
+  rescanTimer: null,
+};
+
+// api.binance.com reliably sets Access-Control-Allow-Origin: * for these endpoints.
+// We try mirrors in order — if one is blocked in your region, the next may work.
+const API_HOSTS = [
+  'https://api.binance.com',
+  'https://api1.binance.com',
+  'https://api2.binance.com',
+  'https://api3.binance.com',
+  'https://data-api.binance.vision',
+];
+let API = API_HOSTS[0];
+
+async function pickWorkingHost(){
+  for (const host of API_HOSTS){
+    try {
+      const r = await fetch(`${host}/api/v3/ping`, { method:'GET' });
+      if (r.ok){ API = host; return host; }
+    } catch(e){ /* try next */ }
+  }
+  throw new Error('All Binance endpoints unreachable. Check network / VPN / region.');
+}
+const FAST = 10, SLOW = 20, SIGNAL = 7;
+const KLINE_LIMIT = 200;     // enough lookback for stable EMAs
+const CONCURRENCY = 8;       // parallel requests
+const BATCH_DELAY = 80;      // ms between dispatches
+
+// ---------- helpers ----------
+function ema(values, period){
+  const k = 2/(period+1);
+  const out = new Array(values.length);
+  // seed with SMA of first `period` values
+  let sum = 0;
+  for(let i=0;i<period;i++){ sum += values[i]; out[i] = NaN; }
+  out[period-1] = sum/period;
+  for(let i=period;i<values.length;i++){
+    out[i] = values[i]*k + out[i-1]*(1-k);
+  }
+  return out;
+}
+
+function computeMACD(closes){
+  if (closes.length < SLOW + SIGNAL + 5) return null;
+  const fast = ema(closes, FAST);
+  const slow = ema(closes, SLOW);
+  const macd = closes.map((_,i)=> (isFinite(fast[i]) && isFinite(slow[i])) ? fast[i]-slow[i] : NaN);
+  // signal is EMA of macd, but macd has leading NaNs; compute from first valid index
+  const startIdx = macd.findIndex(v=>isFinite(v));
+  const macdValid = macd.slice(startIdx);
+  const signalValid = ema(macdValid, SIGNAL);
+  const signal = new Array(macd.length).fill(NaN);
+  for(let i=0;i<signalValid.length;i++) signal[i+startIdx] = signalValid[i];
+  const hist = macd.map((m,i)=> (isFinite(m)&&isFinite(signal[i])) ? m-signal[i] : NaN);
+  return { macd, signal, hist };
+}
+
+// Detect a golden zero-line cross: MACD crosses from NEGATIVE to POSITIVE within
+// the lookback window, in bullish (golden) alignment.
+// The zero cross is the primary trigger — a MACD(10,20) zero cross IS the golden
+// cross of EMA10 over EMA20. We additionally require MACD > signal at (or within
+// 3 bars after) the cross, so momentum is genuinely aligned upward, and that
+// MACD is still positive on the latest closed bar.
+// Returns { ok, zeroCrossIdx, crossIdx (signal cross for display), ... } or null.
+function findGoldenZeroCross(macd, signal, hist, lookback){
+  const n = macd.length;
+
+  // 1. Most recent negative→positive MACD zero cross within the window (strict signs)
+  let zeroCrossIdx = -1;
+  for(let i=n-1; i>=Math.max(1, n-1-lookback); i--){
+    if (isFinite(macd[i-1]) && isFinite(macd[i]) && macd[i-1] < 0 && macd[i] > 0){
+      zeroCrossIdx = i; break;
+    }
+  }
+  if (zeroCrossIdx < 0) return null;
+
+  // 2. Golden alignment: MACD above signal at the cross, or turning above within 3 bars after
+  let aligned = false, alignIdx = zeroCrossIdx;
+  for(let j=zeroCrossIdx; j<=Math.min(n-1, zeroCrossIdx+3); j++){
+    if (isFinite(macd[j]) && isFinite(signal[j]) && macd[j] > signal[j]){
+      aligned = true; alignIdx = j; break;
+    }
+  }
+  if (!aligned) return null;
+
+  // 3. Still positive on the latest closed bar (signal hasn't fizzled back below zero)
+  if (!(macd[n-1] > 0)) return null;
+
+  // Locate the most recent bullish signal-line cross at or before alignIdx (for display)
+  let crossIdx = alignIdx;
+  for(let i=alignIdx; i>=1; i--){
+    const prevDiff = macd[i-1] - signal[i-1];
+    const curDiff  = macd[i]   - signal[i];
+    if (isFinite(prevDiff) && isFinite(curDiff) && prevDiff <= 0 && curDiff > 0){
+      crossIdx = i; break;
+    }
+  }
+
+  // Normalize MACD distance from zero against recent volatility (for sorting / display)
+  const recent = macd.slice(Math.max(0, zeroCrossIdx-30), zeroCrossIdx+1).filter(isFinite);
+  const mean = recent.reduce((a,b)=>a+b,0)/recent.length;
+  const variance = recent.reduce((a,b)=>a+(b-mean)*(b-mean),0)/recent.length;
+  const std = Math.sqrt(variance) || 1e-9;
+
+  return {
+    ok: true,
+    crossIdx,
+    zeroCrossIdx,
+    barsAgo: (n-1) - crossIdx,
+    zeroBarsAgo: (n-1) - zeroCrossIdx,
+    macd: macd[zeroCrossIdx],
+    macdNow: macd[n-1],
+    signal: signal[zeroCrossIdx],
+    hist: hist[zeroCrossIdx],
+    histNow: hist[n-1],
+    distFromZero: macd[n-1] / std,
+  };
+}
+
+// Base assets that are themselves stablecoins or fiat — a "golden cross" on
+// USDC/USDT or EUR/USDT is meaningless noise, so we drop them from the scan
+// (and therefore from Discord alerts too).
+const STABLE_FIAT_BASES = new Set([
+  // stablecoins
+  'USDC','FDUSD','TUSD','DAI','BUSD','USDP','USDD','PYUSD','GUSD','USDS',
+  'FRAX','LUSD','SUSD','USTC','AEUR','EURI','USD1','XUSD','USDe','USDE',
+  // fiat
+  'EUR','GBP','AUD','TRY','BRL','ARS','RUB','ZAR','JPY','MXN','UAH','NGN',
+  'IDRT','BIDR','VAI','COP','PLN','RON','CZK',
+]);
+
+async function fetchAllPairs(quote){
+  const r = await fetch(`${API}/api/v3/exchangeInfo`);
+  const j = await r.json();
+  return j.symbols
+    .filter(s => s.status === 'TRADING'
+              && s.quoteAsset === quote
+              && s.isSpotTradingAllowed
+              && !STABLE_FIAT_BASES.has(s.baseAsset)          // skip stable/fiat bases
+              && !s.symbol.includes('UP') && !s.symbol.includes('DOWN')
+              && !s.symbol.endsWith('BULL') && !s.symbol.endsWith('BEAR'))
+    .map(s => ({symbol:s.symbol, base:s.baseAsset, quote:s.quoteAsset}));
+}
+
+async function fetch24h(){
+  const r = await fetch(`${API}/api/v3/ticker/24hr`);
+  return await r.json();
+}
+
+async function fetchKlines(symbol, interval, limit){
+  const url = `${API}/api/v3/klines?symbol=${symbol}&interval=${interval}&limit=${limit}`;
+  const r = await fetch(url);
+  if (!r.ok) throw new Error(`klines ${symbol} ${r.status}`);
+  return await r.json();
+}
+
+// ---------- UI bindings ----------
+function bindSeg(id, key, parser=v=>v){
+  const seg = document.getElementById(id);
+  seg.addEventListener('click', e=>{
+    const b = e.target.closest('button'); if(!b) return;
+    seg.querySelectorAll('button').forEach(x=>x.classList.remove('on'));
+    b.classList.add('on');
+    state[key] = parser(b.dataset[Object.keys(b.dataset)[0]]);
+  });
+}
+bindSeg('tf-seg','timeframe');
+bindSeg('win-seg','window', v=>parseInt(v,10));
+bindSeg('vol-seg','minVol', v=>parseFloat(v));
+
+document.getElementById('sort-by').addEventListener('change', e=>{
+  state.sortBy = e.target.value;
+  render();
+});
+
+document.getElementById('scan-btn').addEventListener('click', ()=>startScan(false));
+
+// ---------- discord alerts ----------
+const LS_HOOK = 'macdbloom.webhook';
+const LS_KEYS = 'macdbloom.alertedKeys';
+
+// guarded localStorage (works on GitHub Pages / locally; silently no-ops elsewhere)
+function lsGet(k){ try{ return localStorage.getItem(k); }catch(e){ return null; } }
+function lsSet(k,v){ try{ localStorage.setItem(k,v); }catch(e){} }
+
+// restore saved webhook + already-alerted keys
+(function restoreAlertState(){
+  const hook = lsGet(LS_HOOK);
+  if (hook){ state.webhook = hook; document.getElementById('webhook-input').value = hook; }
+  const keys = lsGet(LS_KEYS);
+  if (keys){ try{ JSON.parse(keys).forEach(k=>state.alertedKeys.add(k)); }catch(e){} }
+})();
+
+const alertsToggle = document.getElementById('alerts-toggle');
+const alertsBody   = document.getElementById('alerts-body');
+const webhookInput = document.getElementById('webhook-input');
+const rescanToggle = document.getElementById('rescan-toggle');
+const rescanSeg    = document.getElementById('rescan-seg');
+
+alertsToggle.addEventListener('change', e=>{
+  state.alertsOn = e.target.checked;
+  alertsBody.classList.toggle('open', state.alertsOn);
+  if (!state.alertsOn) stopRescanTimer();
+  else if (state.rescanOn) startRescanTimer();
+});
+
+webhookInput.addEventListener('input', e=>{
+  state.webhook = e.target.value.trim();
+  lsSet(LS_HOOK, state.webhook);
+});
+
+rescanToggle.addEventListener('change', e=>{
+  state.rescanOn = e.target.checked;
+  rescanSeg.classList.toggle('live', state.rescanOn);
+  if (state.rescanOn && state.alertsOn) startRescanTimer();
+  else stopRescanTimer();
+});
+
+rescanSeg.addEventListener('click', e=>{
+  const b = e.target.closest('button'); if(!b) return;
+  rescanSeg.querySelectorAll('button').forEach(x=>x.classList.remove('on'));
+  b.classList.add('on');
+  state.rescanMins = parseInt(b.dataset.m,10);
+  if (state.rescanOn && state.alertsOn) startRescanTimer();
+});
+
+function startRescanTimer(){
+  stopRescanTimer();
+  state.rescanTimer = setInterval(()=>{ if(!state.scanning) startScan(true); }, state.rescanMins*60*1000);
+}
+function stopRescanTimer(){
+  if (state.rescanTimer){ clearInterval(state.rescanTimer); state.rescanTimer = null; }
+}
+
+// test ping
+document.getElementById('test-btn').addEventListener('click', async ()=>{
+  const btn = document.getElementById('test-btn');
+  if (!state.webhook){ webhookInput.focus(); return; }
+  const payload = {
+    username: 'MACD bloom ☾',
+    content: '🌸 **Test ping** — your MACD bloom alerts are wired up! You\'ll get a message here when a fresh negative→positive golden cross appears.',
+  };
+  await postToDiscord(payload);
+  btn.textContent = 'Sent ✓'; btn.classList.add('sent');
+  setTimeout(()=>{ btn.textContent = 'Send test'; btn.classList.remove('sent'); }, 2500);
+});
+
+// Post to a Discord webhook from the browser.
+// Discord doesn't send CORS headers, so we POST multipart/form-data with mode:'no-cors'.
+// The response is opaque (we can't read success), but the message is delivered.
+async function postToDiscord(payload){
+  if (!state.webhook) return;
+  try{
+    const fd = new FormData();
+    fd.append('payload_json', JSON.stringify(payload));
+    await fetch(state.webhook, { method:'POST', body: fd, mode:'no-cors' });
+  }catch(e){ /* opaque / network */ }
+}
+
+function buildEmbed(r){
+  const det = r.detection;
+  const tradeUrl = `https://www.binance.com/en/trade/${r.base}_${r.quote}?type=spot`;
+  const up = r.pctChange >= 0;
+  return {
+    title: `${r.base}/${r.quote} · golden zero-cross ☾`,
+    url: tradeUrl,
+    color: up ? 0x7FE3C0 : 0xFF8FB3,
+    fields: [
+      { name:'Timeframe',    value: state.timeframe, inline:true },
+      { name:'Price',        value: `$${fmtPrice(r.lastClose)}`, inline:true },
+      { name:'24h',          value: `${up?'+':''}${r.pctChange.toFixed(2)}%`, inline:true },
+      { name:'Signal cross', value: `${det.barsAgo} bar(s) ago`, inline:true },
+      { name:'Zero cross',   value: `${det.zeroBarsAgo} bar(s) ago`, inline:true },
+      { name:'24h volume',   value: fmtVol(r.quoteVolume), inline:true },
+    ],
+    footer: { text: 'MACD(10,20,7) · negative→positive · MACD bloom' },
+    timestamp: new Date().toISOString(),
+  };
+}
+
+// queue so we respect Discord's webhook rate limit (~5 / 2s)
+let alertQueue = [];
+let queueRunning = false;
+function enqueueAlert(r){
+  alertQueue.push(r);
+  if (!queueRunning) runAlertQueue();
+}
+async function runAlertQueue(){
+  queueRunning = true;
+  while (alertQueue.length){
+    const batch = alertQueue.splice(0, 8).map(buildEmbed); // up to 10 embeds per message
+    await postToDiscord({ username:'MACD bloom ☾', embeds: batch });
+    if (alertQueue.length) await new Promise(r=>setTimeout(r, 1500));
+  }
+  queueRunning = false;
+}
+
+// ---------- Claude AI read ----------
+// Calls the Anthropic API. Keyless calls only work when this page runs as an
+// artifact inside Claude.ai — on GitHub Pages or local files the request will
+// fail (no API key, by design: never embed a key in a public static page).
+// The panel appears after a scan and degrades gracefully if the API is absent.
+let aiBusy = false;
+document.getElementById('ai-btn').addEventListener('click', askClaude);
+
+function resultsDigest(){
+  // compact, token-friendly digest of top results
+  const list = [...state.results]
+    .sort((a,b)=>b.quoteVolume - a.quoteVolume)
+    .slice(0, 20)
+    .map(r=>{
+      const d = r.detection;
+      return `${r.base}/USDT tf=${state.timeframe} price=${fmtPrice(r.lastClose)} 24h=${r.pctChange.toFixed(1)}% vol=${fmtVol(r.quoteVolume)} signalCross=${d.barsAgo}b zeroCross=${d.zeroBarsAgo}b macdNow=${d.macdNow.toExponential(2)} histNow=${d.histNow.toExponential(2)}`;
+    });
+  return list.join('\n');
+}
+
+async function askClaude(){
+  if (aiBusy || !state.results.length) return;
+  aiBusy = true;
+  const out = document.getElementById('ai-output');
+  const btn = document.getElementById('ai-btn');
+  out.classList.add('show','thinking');
+  out.textContent = 'Reading the charts under the moonlight…';
+  btn.disabled = true;
+
+  const prompt = `You are analyzing output from a Binance spot scanner. It found pairs where MACD(10,20,7) had a bullish signal-line crossover AND the MACD line crossed from negative to positive (zero-line cross) within the last few closed ${state.timeframe} candles. Stablecoin/fiat pairs and low-liquidity pairs were excluded.
+
+Scan results (top by volume):
+${resultsDigest()}
+
+Write a concise read (max ~200 words):
+1. Overall breadth — is this a broad market-wide momentum flip or isolated moves?
+2. The 2-4 most notable setups and one line on why (volume, freshness of cross, 24h strength).
+3. One caution relevant to this batch.
+Plain text only, no markdown headers or bullets symbols other than simple dashes. Do not give financial advice or price targets; describe what the data shows.`;
+
+  try{
+    const resp = await fetch('https://api.anthropic.com/v1/messages', {
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({
+        model:'claude-sonnet-4-6',
+        max_tokens:1000,
+        messages:[{role:'user', content: prompt}],
+      }),
+    });
+    if (!resp.ok) throw new Error(`API ${resp.status}`);
+    const data = await resp.json();
+    const text = (data.content||[]).filter(b=>b.type==='text').map(b=>b.text).join('\n').trim();
+    if (!text) throw new Error('empty response');
+    out.classList.remove('thinking');
+    out.textContent = text + '\n\n— not financial advice ♡';
+  }catch(e){
+    out.classList.remove('thinking');
+    out.textContent = 'Claude isn\'t reachable from here. The AI read only works when this page runs inside Claude.ai as an artifact — on GitHub Pages there\'s no API key (and a public page should never contain one). Everything else works fine without it ☾';
+  }finally{
+    aiBusy = false;
+    btn.disabled = false;
+  }
+}
+
+// ---------- scan ----------
+async function startScan(isAuto){
+  if (state.scanning) return;
+  state.scanning = true;
+  state.results = [];
+  document.getElementById('grid').innerHTML = '';
+  document.getElementById('result-count').textContent = '0';
+  document.getElementById('match-n').textContent = '0';
+  document.getElementById('scanned-n').textContent = '0';
+  document.getElementById('bar').style.width = '0%';
+  setStatus('gathering pairs…');
+  const btn = document.getElementById('scan-btn');
+  btn.disabled = true; btn.textContent = 'Scanning…';
+
+  try {
+    setStatus('finding a reachable endpoint…');
+    const host = await pickWorkingHost();
+    setStatus(`connected to ${host.replace('https://','')} · gathering pairs…`);
+    const [pairs, ticker24h] = await Promise.all([fetchAllPairs(state.quote), fetch24h()]);
+    const tickerMap = new Map(ticker24h.map(t=>[t.symbol,t]));
+    setStatus(`scanning ${pairs.length} ${state.quote} pairs on ${state.timeframe}…`);
+
+    let scanned=0, matched=0;
+    // skeleton placeholders for first ~6
+    for(let i=0;i<6;i++){
+      const sk = document.createElement('div'); sk.className='skeleton';
+      document.getElementById('grid').appendChild(sk);
+    }
+
+    // simple worker pool
+    let cursor = 0;
+    async function worker(){
+      while(cursor < pairs.length){
+        const idx = cursor++;
+        const p = pairs[idx];
+        // liquidity pre-filter: skip illiquid pairs BEFORE spending a klines request on them
+        const tk0 = tickerMap.get(p.symbol);
+        const qv0 = tk0 ? parseFloat(tk0.quoteVolume || '0') : 0;
+        if (qv0 < state.minVol){
+          scanned++;
+          document.getElementById('scanned-n').textContent = scanned;
+          document.getElementById('bar').style.width = `${(scanned/pairs.length)*100}%`;
+          continue;
+        }
+        try {
+          const k = await fetchKlines(p.symbol, state.timeframe, KLINE_LIMIT);
+          if (k && k.length > SLOW+SIGNAL+10){
+            // last bar may be in-progress; analyze closed bars only
+            const closes = k.slice(0,-1).map(row=>parseFloat(row[4]));
+            const lastClose = parseFloat(k[k.length-1][4]);
+            const macdRes = computeMACD(closes);
+            if (macdRes){
+              const det = findGoldenZeroCross(macdRes.macd, macdRes.signal, macdRes.hist, state.window);
+              if (det){
+                const tk = tickerMap.get(p.symbol) || {};
+                // open-time of the zero-cross candle — stable dedupe key across rescans
+                const crossTime = (k[det.zeroCrossIdx] && k[det.zeroCrossIdx][0]) || 0;
+                const alertKey = `${p.symbol}:${state.timeframe}:${crossTime}`;
+                const result = {
+                  ...p,
+                  lastClose,
+                  closes,
+                  macdSeries: macdRes.macd,
+                  signalSeries: macdRes.signal,
+                  histSeries: macdRes.hist,
+                  detection: det,
+                  crossTime,
+                  alertKey,
+                  pctChange: parseFloat(tk.priceChangePercent || '0'),
+                  quoteVolume: parseFloat(tk.quoteVolume || '0'),
+                };
+                state.results.push(result);
+                matched++;
+                document.getElementById('match-n').textContent = matched;
+                // remove a skeleton if any
+                const sk = document.getElementById('grid').querySelector('.skeleton');
+                if (sk) sk.remove();
+                appendCard(result);
+
+                // fire a Discord alert only for crosses we haven't pinged before
+                if (state.alertsOn && state.webhook && !state.alertedKeys.has(alertKey)){
+                  state.alertedKeys.add(alertKey);
+                  lsSet(LS_KEYS, JSON.stringify([...state.alertedKeys].slice(-500)));
+                  enqueueAlert(result);
+                }
+              }
+            }
+          }
+        } catch(e){
+          // skip on error
+        }
+        scanned++;
+        document.getElementById('scanned-n').textContent = scanned;
+        document.getElementById('bar').style.width = `${(scanned/pairs.length)*100}%`;
+        if (scanned % 5 === 0) setStatus(`scanned ${scanned}/${pairs.length} · ${matched} bloomers found`);
+        await new Promise(r=>setTimeout(r, BATCH_DELAY));
+      }
+    }
+    const workers = Array.from({length: CONCURRENCY}, ()=>worker());
+    await Promise.all(workers);
+
+    // remove any remaining skeletons
+    document.querySelectorAll('#grid .skeleton').forEach(s=>s.remove());
+
+    const nextNote = (state.alertsOn && state.rescanOn) ? ` · next rescan in ${state.rescanMins}m` : '';
+    setStatus(`done · scanned ${scanned} · ${matched} bloomers found ☾${nextNote}`);
+    document.getElementById('ai-panel').style.display = matched > 0 ? 'block' : 'none';
+    render(); // re-sort with chosen criterion
+  } catch(e){
+    setStatus(`error: ${e.message}`);
+  } finally {
+    state.scanning = false;
+    btn.disabled = false; btn.textContent = 'Scan now';
+  }
+}
+
+function setStatus(t){ document.getElementById('status-text').textContent = t; }
+
+// ---------- rendering ----------
+function fmtPrice(p){
+  if (!isFinite(p)) return '—';
+  if (p >= 1000) return p.toFixed(2);
+  if (p >= 1) return p.toFixed(4);
+  if (p >= 0.01) return p.toFixed(5);
+  if (p >= 0.0001) return p.toFixed(7);
+  return p.toExponential(3);
+}
+function fmtVol(v){
+  if (!isFinite(v)) return '—';
+  if (v >= 1e9) return (v/1e9).toFixed(2)+'B';
+  if (v >= 1e6) return (v/1e6).toFixed(2)+'M';
+  if (v >= 1e3) return (v/1e3).toFixed(1)+'K';
+  return v.toFixed(0);
+}
+
+// MACD mini-chart: histogram bars + macd (pink) / signal (lavender) lines,
+// dashed zero line, gold dot marking the zero-cross candle.
+function macdChart(r){
+  const N = 40;
+  const total = r.macdSeries.length;
+  const macd = r.macdSeries.slice(-N);
+  const sig  = r.signalSeries.slice(-N);
+  const hist = r.histSeries.slice(-N);
+  const n = macd.length;
+  const vals = [...macd, ...sig].filter(isFinite);
+  if (!vals.length) return '';
+  const maxAbs = Math.max(...vals.map(Math.abs)) || 1e-12;
+  const w = 260, h = 56, pad = 4, mid = h/2;
+  const X = i => pad + (i/(n-1))*(w-2*pad);
+  const Y = v => mid - (v/maxAbs)*(mid-pad);
+
+  const bw = ((w-2*pad)/n)*0.55;
+  let bars = '';
+  hist.forEach((v,i)=>{
+    if (!isFinite(v)) return;
+    const yy = Y(v);
+    const top = Math.min(mid, yy);
+    const hh = Math.max(Math.abs(yy-mid), .5);
+    const col = v >= 0 ? 'rgba(127,227,192,.35)' : 'rgba(255,143,179,.35)';
+    bars += `<rect x="${(X(i)-bw/2).toFixed(1)}" y="${top.toFixed(1)}" width="${bw.toFixed(1)}" height="${hh.toFixed(1)}" rx="1" fill="${col}"/>`;
+  });
+
+  const line = (arr, color, width) => {
+    const pts = arr.map((v,i)=> isFinite(v) ? `${X(i).toFixed(1)},${Y(v).toFixed(1)}` : null).filter(Boolean).join(' ');
+    return `<polyline points="${pts}" fill="none" stroke="${color}" stroke-width="${width}" stroke-linejoin="round" stroke-linecap="round"/>`;
+  };
+
+  // gold marker on the zero-cross candle (if visible in the window)
+  let marker = '';
+  const ci = n - 1 - ((total-1) - r.detection.zeroCrossIdx);
+  if (ci >= 0 && ci < n && isFinite(macd[ci])){
+    marker = `<circle cx="${X(ci).toFixed(1)}" cy="${Y(macd[ci]).toFixed(1)}" r="3.2" fill="#FFD89B" stroke="#13101C" stroke-width="1.2"/>`;
+  }
+
+  return `
+    <svg class="macd-chart" viewBox="0 0 ${w} ${h}" preserveAspectRatio="none">
+      <line x1="${pad}" y1="${mid}" x2="${w-pad}" y2="${mid}" stroke="rgba(196,168,255,.35)" stroke-width="1" stroke-dasharray="3 4"/>
+      ${bars}
+      ${line(sig, '#A98BE6', 1.3)}
+      ${line(macd, '#FF8FB3', 1.5)}
+      ${marker}
+    </svg>`;
+}
+
+function spark(closes){
+  // last 60 closes
+  const data = closes.slice(-60);
+  const n = data.length;
+  const min = Math.min(...data), max = Math.max(...data);
+  const range = (max-min) || 1;
+  const w = 260, h = 64, pad = 4;
+  const pts = data.map((v,i)=>{
+    const x = pad + (i/(n-1))*(w-2*pad);
+    const y = h-pad - ((v-min)/range)*(h-2*pad);
+    return `${x.toFixed(1)},${y.toFixed(1)}`;
+  }).join(' ');
+  const lastUp = data[n-1] >= data[0];
+  const stroke = lastUp ? '#7FE3C0' : '#FF8FB3';
+  const fill   = lastUp ? 'rgba(127,227,192,.18)' : 'rgba(255,143,179,.18)';
+  return `
+    <svg class="spark" viewBox="0 0 ${w} ${h}" preserveAspectRatio="none">
+      <polyline points="${pad},${h-pad} ${pts} ${w-pad},${h-pad}" fill="${fill}" stroke="none"/>
+      <polyline points="${pts}" fill="none" stroke="${stroke}" stroke-width="1.6" stroke-linejoin="round" stroke-linecap="round"/>
+    </svg>`;
+}
+
+function cardHTML(r){
+  const det = r.detection;
+  const chgClass = r.pctChange >= 0 ? 'up' : 'down';
+  const chgSign = r.pctChange >= 0 ? '+' : '';
+  return `
+    <div class="card">
+      <div class="card-head">
+        <div class="pair">${r.base}<span class="quote">/${r.quote}</span></div>
+        <div class="badge">↑ zero cross</div>
+      </div>
+      <div class="price">
+        <span>$${fmtPrice(r.lastClose)}</span>
+        <span class="change ${chgClass}">${chgSign}${r.pctChange.toFixed(2)}% 24h</span>
+      </div>
+      ${spark(r.closes)}
+      <div class="chart-label"><span class="lbl-macd">— macd</span><span class="lbl-sig">— signal</span><span class="lbl-dot">● zero cross</span></div>
+      ${macdChart(r)}
+      <div class="stats">
+        <div class="stat"><div class="stat-label">Signal cross</div><div class="stat-val">${det.barsAgo}b ago</div></div>
+        <div class="stat"><div class="stat-label">Zero cross</div><div class="stat-val">${det.zeroBarsAgo}b ago</div></div>
+        <div class="stat"><div class="stat-label">MACD now</div><div class="stat-val">${det.macdNow.toExponential(2)}</div></div>
+        <div class="stat"><div class="stat-label">24h vol</div><div class="stat-val">${fmtVol(r.quoteVolume)}</div></div>
+      </div>
+    </div>`;
+}
+
+function appendCard(r){
+  const grid = document.getElementById('grid');
+  grid.insertAdjacentHTML('beforeend', cardHTML(r));
+  document.getElementById('result-count').textContent = state.results.length;
+}
+
+function render(){
+  const list = [...state.results];
+  switch(state.sortBy){
+    case 'zero': list.sort((a,b)=>Math.abs(a.detection.distFromZero)-Math.abs(b.detection.distFromZero)); break;
+    case 'hist': list.sort((a,b)=>b.detection.hist - a.detection.hist); break;
+    case 'vol':  list.sort((a,b)=>b.quoteVolume - a.quoteVolume); break;
+    case 'chg':  list.sort((a,b)=>b.pctChange - a.pctChange); break;
+    case 'recent': list.sort((a,b)=>a.detection.zeroBarsAgo - b.detection.zeroBarsAgo); break;
+  }
+  const grid = document.getElementById('grid');
+  grid.innerHTML = '';
+  if (list.length === 0){
+    grid.innerHTML = `<div class="empty" style="grid-column:1/-1">
+      <div class="big">No bloomers right now ☾</div>
+      <div class="small">Try a different timeframe, widen the crossover window, or scan again in a bit.</div>
+    </div>`;
+    document.getElementById('result-count').textContent = '0';
+    return;
+  }
+  list.forEach(r => grid.insertAdjacentHTML('beforeend', cardHTML(r)));
+  document.getElementById('result-count').textContent = list.length;
+}
+
+// initial empty state
+render();
+</script>
+</body>
+</html>
